@@ -836,6 +836,8 @@ h1 em, h2 em {
 }
 
 @media (max-width: 720px) {
+  .header-inner { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+  .cs-demo { display: none; }
   .nav-toggle { display: flex; }
   .primary-nav {
     position: absolute;
