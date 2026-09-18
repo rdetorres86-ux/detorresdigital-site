@@ -235,7 +235,8 @@ h1 em, h2 em {
   display: none;
   flex-direction: column;
   gap: 5px;
-  padding: 0.5rem;
+  padding: 0.875rem;
+  margin: -0.875rem;
 }
 .nav-toggle span {
   width: 22px;
@@ -836,7 +837,7 @@ h1 em, h2 em {
 }
 
 @media (max-width: 720px) {
-  .header-inner { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+  .header-inner { padding-top: 1.75rem; padding-bottom: 1.75rem; }
   .cs-demo { display: none; }
   .nav-toggle { display: flex; }
   .primary-nav {
