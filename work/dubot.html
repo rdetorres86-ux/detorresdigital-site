@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dubot Case Study · Rocío de Torres</title>
+<meta name="description" content="Designing the human-in-the-loop layer of an AI agent product: the moments where the agent asks, gathers, and confirms before it takes a real action.">
+<meta property="og:title" content="Dubot Case Study · Rocío de Torres">
+<meta property="og:description" content="Designing the human-in-the-loop layer of an AI agent product: the moments where the agent asks, gathers, and confirms before it takes a real action.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://detorresdigital.com/work/dubot.html">
+<meta property="og:image" content="https://detorresdigital.com/images/rocio-photo.jpg">
+<meta property="og:site_name" content="Rocío de Torres">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dubot Case Study · Rocío de Torres">
+<meta name="twitter:description" content="Designing the human-in-the-loop layer of an AI agent product: the moments where the agent asks, gathers, and confirms before it takes a real action.">
+<meta name="twitter:image" content="https://detorresdigital.com/images/rocio-photo.jpg">
+<link rel="icon" type="image/png" href="../images/mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,500&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="wordmark" href="../index.html">
+      <img class="wordmark-mark" src="../images/mark.png" alt="" width="22" height="22">
+      Rocío de Torres
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="primary-nav" id="primaryNav">
+      <a href="../index.html#work">Work</a>
+      <a href="../services.html">Services</a>
+      <a href="../experience.html">Experience</a>
+      <a href="../about.html">About</a>
+      <a class="nav-cta" href="../services.html#audit">Get an Audit</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ CASE STUDY HERO ============ -->
+  <section class="cs-hero">
+    <div class="wrap">
+      <a class="cs-back reveal" href="../index.html#work">&larr; Back to work</a>
+      <p class="eyebrow reveal">Case study &middot; AI agent product</p>
+      <h1 class="reveal">Designing the human-in-the-loop layer of an AI agent product.</h1>
+      <p class="hero-sub reveal">
+        Dubot is an AI-agentic product, born in January 2026. It gives businesses a governance layer between their AI agent and their own end users: an admin panel to control what the agent can do and what context it has. As solo product designer, I design across the whole product, admin panel, editor, and end-user layer alike. This case study zooms in on one piece of that: the end-user experience, from how the agent shows up on the page to what happens when its actions don't go as planned.
+      </p>
+
+      <div class="cs-facts cs-facts--three reveal">
+        <div>
+          <span class="cs-fact-label">Role</span>
+          <span class="cs-fact-value">Solo product designer, full product</span>
+        </div>
+        <div>
+          <span class="cs-fact-label">Timeline</span>
+          <span class="cs-fact-value">2026&ndash;present</span>
+        </div>
+        <div>
+          <span class="cs-fact-label">Status</span>
+          <span class="cs-fact-value">Live, in active development</span>
+        </div>
+      </div>
+
+      <div class="cs-demo reveal">
+        <div class="cs-demo-bar">
+          <span class="cs-demo-label"><span class="status-dot"></span>Live, interactive prototype</span>
+          <span class="cs-demo-hint">Pick a journey from the top bar to explore other moments &middot; loads a discount-confirmation flow by default</span>
+        </div>
+        <iframe src="../demos/dubot-confirmation-demo.html" title="Interactive Dubot end-user experience prototype" loading="lazy"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE SCOPE ============ -->
+  <section class="section cs-section problem">
+    <div class="wrap">
+      <p class="eyebrow reveal">The scope</p>
+      <h2 class="reveal">More than a confirmation button.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          The end-user experience piece isn't one screen, it's a full surface. Before landing on a docked side panel, I tested it against other formats, a step-by-step wizard, a command-style search bar, through user interviews, and the side panel won because it lets the agent stay present without taking over the page. Beyond the entry point, I also designed how the agent behaves and looks inside a client's product: its tone, its pacing, and the moments where it needs to act directly on the page itself rather than just talk, and how that on-page behavior and the side panel stay in sync instead of feeling like two separate tools.
+        </p>
+        <p class="reveal">
+          Closing the panel doesn't mean losing track of what the agent is doing. I designed a persistent status bar that stays visible while the agent is mid-action, showing what's happening and giving the user a way to pause or step back in. I also designed for a case that's increasingly common: a page where another AI is already present, whether that's a headless version of Dubot itself or a separate assistant already embedded in the product, and how the two should coexist without confusing the user about who's doing what.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE PROBLEM ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">The problem</p>
+      <h2 class="reveal">An agent that acts without a checkpoint is asking users to trust a black box.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          AI agents can now do real things inside a product: create a record, send something, change data. That's useful, but it's also where trust breaks if it's designed carelessly. An end user who watches an agent silently execute has no way to catch a mistake before it's made. Designing the checkpoint that prevents that, without turning every action into a tedious approval chore, is what I've been solving in this part of the Dubot product.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE RESEARCH ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">The research</p>
+      <h2 class="reveal">Validated through dozens of interviews.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          Before I designed a single screen, I ran structured discovery interviews across a research program spanning dozens of conversations with prospective and pilot customers in different industries, testing a specific hypothesis: that end users need a real, inspectable confirmation step before an agent's action goes live, instead of a generic "AI assistant" chat window with a vague sense that something happened.
+        </p>
+        <p class="reveal">
+          I tracked how many of those interviews converged on the same requirement without being prompted toward it. The answer was most of them. People asked, unprompted and before seeing any design, whether the end user would see the result before it went out. Others said plainly that their own customers need to see what's about to happen before it happens, and not just be told that it did. It's a pattern that kept surfacing on its own, independently, across separate conversations with separate companies. That's the real evidence behind this pattern.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE PATTERN ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">The pattern</p>
+      <h2 class="reveal">Ask, gather, and always show the full payload before it fires.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          The end-user flow starts wherever the user already is: a prompt box asking what they'd like the agent to do. From there, the agent asks clarifying questions using real UI controls (choices, lookups, short forms) instead of burying everything in chat, so the user is never guessing what's expected of them.
+        </p>
+      </div>
+
+      <figure class="cs-shot cs-shot--narrow reveal">
+        <img src="../images/dubot/launcher.png" alt="Figma design of a 'How can we help?' assistant panel: a getting-started guide, help center, product walkthrough, talk to support, and quick-action chips." loading="lazy">
+        <figcaption class="cs-shot-caption">The entry point, from the Figma design: a docked assistant panel, built into the product itself.</figcaption>
+      </figure>
+
+      <figure class="cs-shot reveal">
+        <img src="../images/dubot/question.png" alt="Figma design of the agent disambiguating which record to edit, then offering a list of selectable next actions, instead of expecting a typed chat answer." loading="lazy">
+        <figcaption class="cs-shot-caption">The agent narrows down what's being edited, then offers real selection controls instead of open-ended chat.</figcaption>
+      </figure>
+
+      <div class="cs-body">
+        <p class="reveal">
+          Whatever the agent is about to do, the last step before execution is always the same: a full label/value view of what will happen, editable and cancelable, never just a "Confirm?" button standing in for a decision the user can't actually inspect.
+        </p>
+      </div>
+
+      <figure class="cs-shot reveal">
+        <img src="../images/dubot/confirmation.png" alt="Figma design of a live step tracker showing the agent's progress toward an action, alongside a confirmation card with the exact discount and new total, plus Apply and Cancel buttons." loading="lazy">
+        <figcaption class="cs-shot-caption">A live step tracker shows what the agent is doing as it does it, then the full payload, laid out plainly, before it's allowed to act.</figcaption>
+      </figure>
+
+      <div class="cs-callout reveal">
+        <span class="cs-callout-label">A secondary signal</span>
+        <p>On top of the interview research, another company's CX team designed their own AI-agent confirmation experience from scratch, entirely separately, and landed on close to the same shape. It's a nice bit of outside confirmation, though the interviews above are the real evidence behind this pattern.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEYOND THE HAPPY PATH ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">Beyond the happy path</p>
+      <h2 class="reveal">Most of the design work is in what happens when things don't go smoothly.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          A confirm-and-execute flow is easy to design for the case where everything works. The harder problem is everywhere around it: what the agent says when it can't find a confident answer and declines rather than guesses, what happens when an action needs disambiguation first, or gets blocked outright because an admin restricted it. I designed explicit states for declines, cancellations, execution failures with a retry path, and a walkthrough getting interrupted mid-step, each with its own recovery, not one generic error message standing in for all of them.
+        </p>
+      </div>
+
+      <figure class="cs-shot reveal">
+        <img src="../images/dubot/failed-execution.png" alt="Figma design of a failed action state: the agent's step tracker shows Confirm and apply failed with a connection issue, alongside a retry or not-now choice." loading="lazy">
+        <figcaption class="cs-shot-caption">A failed execution, shown plainly with what went wrong and a clear way to retry, not a dead end.</figcaption>
+      </figure>
+
+      <div class="cs-body">
+        <p class="reveal">
+          Some of that came directly from working closely with an enterprise pilot customer on their specific use case: real interviews with their team, feedback on early versions, and adjustments to fit how their product and their end users actually behaved, not a generic AI-agent scenario worked out in the abstract.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTEXT ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">Context</p>
+      <h2 class="reveal">Built fast inside an existing product, designed standalone-first.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          Dubot is currently built inside the infrastructure of the company's existing product, for engineering speed, with a standalone product as the long-term goal. I design every flow standalone-first, what's the right experience for this as its own product, and flag it explicitly whenever the current infrastructure forces a compromise, rather than letting temporary constraints quietly become the permanent design.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OUTCOME ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">Outcome</p>
+      <h2 class="reveal">Live today, with the roadmap still unfolding.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          Dubot's end-user experience is live and in active development. It's early enough that I'm not sharing specific business metrics or an unreleased roadmap here, so this case study focuses on the design work itself: a full surface, not just a confirmation pattern, grounded in real interview research and a real pilot customer, and held up under real use.
+        </p>
+        <a class="cs-live-link reveal" href="https://www.dubot.ai/" target="_blank" rel="noopener">dubot.ai &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CASE STUDY NAV ============ -->
+  <nav class="wrap cs-nav">
+    <a class="cs-nav-link" href="lettersto.html">
+      <span class="cs-nav-dir">&larr; Previous</span>
+      LettersTo
+    </a>
+    <a class="cs-nav-link cs-nav-link--next" href="candu.html">
+      <span class="cs-nav-dir">Next &rarr;</span>
+      Candu
+    </a>
+  </nav>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>&copy; <span id="year"></span> Rocío de Torres</p>
+    <nav class="footer-links">
+      <a href="https://linkedin.com/in/rocío-de-torres-artillo-43a83437" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:hello@detorresdigital.com">Email</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

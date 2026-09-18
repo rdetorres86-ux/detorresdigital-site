@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candu Case Study · Rocío de Torres</title>
+<meta name="description" content="How a manual 30-60 minute tour-building workflow at Candu became an AI-driven capture that takes under 10, designed solo with a human-in-the-loop review gate.">
+<meta property="og:title" content="Candu Case Study · Rocío de Torres">
+<meta property="og:description" content="How a manual 30-60 minute tour-building workflow at Candu became an AI-driven capture that takes under 10, designed solo with a human-in-the-loop review gate.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://detorresdigital.com/work/candu.html">
+<meta property="og:image" content="https://detorresdigital.com/images/rocio-photo.jpg">
+<meta property="og:site_name" content="Rocío de Torres">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Candu Case Study · Rocío de Torres">
+<meta name="twitter:description" content="How a manual 30-60 minute tour-building workflow at Candu became an AI-driven capture that takes under 10, designed solo with a human-in-the-loop review gate.">
+<meta name="twitter:image" content="https://detorresdigital.com/images/rocio-photo.jpg">
+<link rel="icon" type="image/png" href="../images/mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,500&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" id="top">
+  <div class="wrap header-inner">
+    <a class="wordmark" href="../index.html">
+      <img class="wordmark-mark" src="../images/mark.png" alt="" width="22" height="22">
+      Rocío de Torres
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="primary-nav" id="primaryNav">
+      <a href="../index.html#work">Work</a>
+      <a href="../services.html">Services</a>
+      <a href="../experience.html">Experience</a>
+      <a href="../about.html">About</a>
+      <a class="nav-cta" href="../services.html#audit">Get an Audit</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ CASE STUDY HERO ============ -->
+  <section class="cs-hero">
+    <div class="wrap">
+      <a class="cs-back reveal" href="../index.html#work">&larr; Back to work</a>
+      <p class="eyebrow reveal">Case study &middot; No-code editor</p>
+      <h1 class="reveal">Cutting a 30&ndash;60 minute manual workflow down to under 10.</h1>
+      <p class="hero-sub reveal">
+        Candu is a live, shipping no-code editor for building in-product tours and banners. I founded its design system from scratch, left for another role, then came back to lead its move into AI-assisted creation, most visibly with Recording Session: a Chrome extension that turns a manual, step-by-step tour build into a single recorded flow the AI drafts and the user approves.
+      </p>
+
+      <div class="cs-facts reveal">
+        <div>
+          <span class="cs-fact-label">Role</span>
+          <span class="cs-fact-value">Founding &amp; returning solo product designer</span>
+        </div>
+        <div>
+          <span class="cs-fact-label">Team</span>
+          <span class="cs-fact-value">2 engineers, no dedicated PM or QA (same team building Dubot)</span>
+        </div>
+        <div>
+          <span class="cs-fact-label">Timeline</span>
+          <span class="cs-fact-value">2019&ndash;2022, 2023&ndash;present</span>
+        </div>
+        <div>
+          <span class="cs-fact-label">Status</span>
+          <span class="cs-fact-value">Live in production</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ THE PROBLEM ============ -->
+  <section class="section cs-section problem">
+    <div class="wrap">
+      <p class="eyebrow reveal">The problem</p>
+      <h2 class="reveal">Building one tour meant 30&ndash;60 minutes of manual setup, every time.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          Candu's users are non-technical marketers and product teams building in-product tours and banners without writing code. Before Recording Session, creating a tour meant building each step individually: connecting it to a placement, defining the target URL, writing the content, and styling every step's look and feel by hand. A simple 5-step tour took 30 to 60 minutes, done by people who are not designers and often just want to ship a quick walkthrough.
+        </p>
+        <p class="reveal">
+          Research here didn't come from a large quantitative study. Candu is a B2B power-user product with a small number of people creating content for many end users, so the signal came from user interviews, support tickets, CX feedback, and in-product usage patterns, like which editor components got used most, which also fed a separate palette-restructuring project. That's a different research mode from a consumer product's funnel numbers, and just as valid.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE SOLUTION ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">The solution</p>
+      <h2 class="reveal">Record the flow once. Let AI draft the tour. Review before it goes live.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          Recording Session is a Chrome extension that captures a real flow as the user performs it once in their own product. The AI-powered capture identifies each meaningful interaction as it happens, with visual feedback (a countdown, step indicators, a halo effect on captured elements), then generates the tour steps automatically: titles, copy, selectors, and screenshots pulled straight from the recording.
+        </p>
+      </div>
+
+      <figure class="cs-shot reveal">
+        <img src="../images/candu/figma-extension-recorded.png" alt="Designed recording-complete state of the Candu extension: four captured steps filled in, a Tour Flow Recorded confirmation, and a Save and edit in Candu button." loading="lazy">
+        <figcaption class="cs-shot-caption">The designed recording-complete state, ready to hand off to the editor.</figcaption>
+      </figure>
+
+      <div class="cs-body">
+        <p class="reveal">
+          The user lands in the editor with a real draft already built: steps positioned on the actual product, copy already written, ready to fine-tune.
+        </p>
+      </div>
+
+      <figure class="cs-shot reveal">
+        <img src="../images/candu/figma-editor-result.png" alt="Designed Candu editor showing an AI-drafted tour step on the target product, the AI Copilot's summary panel, and a floating step navigator." loading="lazy">
+        <figcaption class="cs-shot-caption">The designed editor result: an AI-drafted tour, ready for human review before publishing.</figcaption>
+      </figure>
+
+      <div class="cs-body">
+        <p class="reveal">
+          The interactive walkthrough below simulates that same flow end to end, so you can click through it yourself.
+        </p>
+      </div>
+
+      <div class="cs-demo cs-demo--tall reveal">
+        <div class="cs-demo-bar">
+          <span class="cs-demo-label"><span class="status-dot"></span>Interactive walkthrough</span>
+          <span class="cs-demo-hint">Step through the toolbar above the demo: idle &rarr; record &rarr; recorded &rarr; AI draft &rarr; publish</span>
+        </div>
+        <iframe src="../demos/candu-recording-session-demo.html" title="Interactive Candu Recording Session prototype" loading="lazy"></iframe>
+      </div>
+      <p class="cs-demo-note reveal">This is a simplified simulation built to demonstrate how the flow works, not a pixel-accurate recreation of Candu's UI. The two screens above are the real designs it's based on.</p>
+
+      <div class="cs-callout reveal">
+        <span class="cs-callout-label">Key decision</span>
+        <p>AI drafts the tour, but nothing publishes automatically. The user reviews the AI-generated copy and structure on the real product and approves before anything goes live. It's a deliberate quality gate, so the speed gain doesn't come at the cost of quality.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OUTCOME ============ -->
+  <section class="section cs-section">
+    <div class="wrap">
+      <p class="eyebrow reveal">Outcome</p>
+      <h2 class="reveal">Live in production, and part of a larger design-system migration.</h2>
+      <div class="cs-body">
+        <p class="reveal">
+          Recording Session is live in production today. Power-user feedback has been directionally positive, though at Candu's size there's no dedicated team tracking that at the level of individual tickets or quotes, a real constraint of running a small, lean team. Alongside this flagship flow, I also led the migration of Candu's design system to a tokenized framework, standardizing UI across the internal tools and the newer AI agent surfaces.
+        </p>
+        <p class="reveal">
+          I design this work, and run Candu's broader design documentation and process, working with Claude Code as a collaborator. The human-in-the-loop pattern in Recording Session mirrors how I actually work day to day.
+        </p>
+        <a class="cs-live-link reveal" href="https://www.candu.ai/" target="_blank" rel="noopener">candu.ai &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CASE STUDY NAV ============ -->
+  <nav class="wrap cs-nav">
+    <a class="cs-nav-link" href="dubot.html">
+      <span class="cs-nav-dir">&larr; Previous</span>
+      Dubot
+    </a>
+    <a class="cs-nav-link cs-nav-link--next" href="luca.html">
+      <span class="cs-nav-dir">Next &rarr;</span>
+      Luca
+    </a>
+  </nav>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>&copy; <span id="year"></span> Rocío de Torres</p>
+    <nav class="footer-links">
+      <a href="https://linkedin.com/in/rocío-de-torres-artillo-43a83437" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="mailto:hello@detorresdigital.com">Email</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

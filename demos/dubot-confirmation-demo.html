@@ -1,0 +1,1332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dubot: End User Journeys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#4A5FD9; --on-accent:#FFFFFF;
+  --background:#FFFFFF; --surface:#F6F5F2; --border:#E6E4DE;
+  --text-primary:#1C1B19; --text-secondary:#78766F;
+  --success:#3E8E4F; --success-bg:#E3F1E2;
+  --error:#C14030; --error-bg:#FBEAE7;
+  --dark-surface:#1C1B19; --on-dark-surface:#FFFFFF;
+  --font-body:'Inter',-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',monospace; /* tool chrome (top bar) ONLY — the Figma file itself is Inter throughout */
+  /* Figma type scale (Components page named text styles) — match exactly, don't invent sizes */
+  --fs-heading:16px;      /* Heading — Inter Semi Bold 600 */
+  --fs-body-strong:14px;  /* Body Strong — Inter Medium 500 */
+  --fs-body:14px;         /* Body — Inter Regular 400 */
+  --fs-label-strong:12px; /* Label Strong — Inter Medium 500 */
+  --fs-label:12px;        /* Label — Inter Regular 400 */
+  --fs-caption:11px;      /* Caption — Inter Regular 400 */
+  --shadow-card:0 1px 2px rgba(28,27,25,.06), 0 1px 8px rgba(28,27,25,.06);
+  --shadow-pop:0 4px 16px rgba(28,27,25,.14), 0 1px 3px rgba(28,27,25,.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:var(--font-body); color:var(--text-primary); background:#EDECE7;
+  display:flex; flex-direction:column; height:100vh; overflow:hidden;
+}
+
+/* ---------- Top picker bar ---------- */
+#topbar{
+  display:flex; align-items:center; gap:16px; padding:10px 20px;
+  background:var(--dark-surface); color:var(--on-dark-surface); flex:0 0 auto; z-index:50;
+  font-size:13px;
+}
+#topbar .brand{font-family:var(--font-mono); font-weight:600; letter-spacing:.02em; font-size:12px; opacity:.9; white-space:nowrap;}
+#topbar select{
+  background:#2A2924; color:#fff; border:1px solid #3d3b35; border-radius:6px;
+  padding:6px 10px; font-family:var(--font-body); font-size:13px; cursor:pointer;
+}
+#topbar button{
+  font-family:var(--font-mono); font-size:11px; font-weight:600; text-transform:capitalize;
+  background:var(--accent); color:#fff; border:none; border-radius:6px; padding:7px 14px; cursor:pointer;
+}
+#topbar button.ghost{background:transparent; border:1px solid #4a4842; color:#cfceca;}
+#topbar button:disabled{opacity:.4; cursor:default;}
+#scenario-desc{flex:1; opacity:.75; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+#dev-tools{display:flex; gap:6px; align-items:center;}
+
+/* ---------- Stage ---------- */
+#stage{flex:1; display:flex; position:relative; overflow:hidden; background:#EDECE7;}
+#host-wrap{flex:1; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:24px;}
+#host{
+  position:relative; width:100%; max-width:900px; height:100%; max-height:680px;
+  background:var(--background); border-radius:10px; box-shadow:var(--shadow-card);
+  overflow:hidden; display:flex; flex-direction:column; transition:max-width .35s ease;
+}
+#host.wide{max-width:1160px;}
+#host-nav{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); flex:0 0 auto;}
+#host-nav .brandname{font-weight:600; font-size:14px;}
+#host-nav .help-btn{
+  width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--surface);
+  font-size:12px; font-weight:600; color:var(--text-secondary); display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:scale(.6); transition:all .3s ease;
+}
+#host-nav .help-btn.show{opacity:1; transform:scale(1);}
+#host-body{flex:1; padding:24px; overflow:auto; position:relative;}
+#host-body h1{font-size:20px; margin:0 0 16px;}
+.stats-row{display:flex; gap:12px; margin-bottom:20px;}
+.stat-card{flex:1; background:var(--surface); border-radius:8px; padding:14px 16px;}
+.stat-card .label{font-size:12px; color:var(--text-secondary); margin-bottom:4px;}
+.stat-card .value{font-size:20px; font-weight:700;}
+.list{border:1px solid var(--border); border-radius:8px; overflow:hidden;}
+.list-row{padding:12px 16px; font-size:14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;}
+.list-row:last-child{border-bottom:none;}
+.list-row .sub{color:var(--text-secondary); font-size:13px;}
+
+/* invoice host */
+.invoice-title{font-size:18px; font-weight:600; margin:0 0 16px;}
+.invoice-list{border-top:1px solid var(--border);}
+.invoice-row{display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--border); font-size:14px;}
+.invoice-row.note{align-items:flex-start;}
+.invoice-row .note-text{max-width:340px; text-align:right; color:var(--text-primary);}
+.invoice-total{background:var(--surface); border-radius:8px; padding:14px 16px; margin-top:16px; display:inline-block; min-width:180px;}
+.invoice-total .label{font-size:12px; color:var(--text-secondary);}
+.invoice-total .value{font-size:20px; font-weight:700;}
+.discount-field{transition:color .4s ease, font-weight .4s ease;}
+.discount-field.applied{color:var(--success); font-weight:600;}
+
+/* host row highlight target wrapper */
+[data-spot]{position:relative; border-radius:6px; transition:box-shadow .25s ease;}
+
+/* ---------- Spotlight + cursor + tooltip ---------- */
+#spotlight-ring{
+  position:absolute; border:2px solid var(--accent); border-radius:8px; pointer-events:none;
+  box-shadow:0 0 0 4000px rgba(28,27,25,.18); opacity:0; transition:all .45s cubic-bezier(.4,0,.2,1);
+  z-index:20;
+}
+#spotlight-ring.show{opacity:1;}
+#cursor-icon{
+  position:absolute; width:34px; height:34px; z-index:30; opacity:0; pointer-events:none;
+  transition:all .55s cubic-bezier(.4,0,.2,1);
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));
+}
+#cursor-icon.show{opacity:1;}
+#cursor-icon svg{width:100%; height:100%;}
+
+#tooltip{
+  position:absolute; z-index:25; width:260px; background:var(--background); border-radius:10px;
+  box-shadow:var(--shadow-pop); padding:14px 14px 12px; opacity:0; transform:translateY(6px) scale(.97);
+  pointer-events:none; transition:all .3s ease;
+}
+#tooltip.show{opacity:1; transform:translateY(0) scale(1); pointer-events:auto;}
+#tooltip .pointer{position:absolute; width:12px; height:12px; background:var(--background); transform:rotate(45deg);}
+#tooltip .top-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+#tooltip .dots{display:flex; gap:4px;}
+#tooltip .dots span{width:5px; height:5px; border-radius:50%; background:var(--border);}
+#tooltip .dots span.active{background:var(--accent);}
+#tooltip .skip{font-size:var(--fs-label); color:var(--text-secondary); cursor:pointer; background:none; border:none; font-family:var(--font-body);}
+#tooltip .step-title{font-weight:500; font-size:var(--fs-body-strong); margin:0 0 4px;}
+#tooltip .step-text{font-size:var(--fs-body); color:var(--text-secondary); line-height:1.5; margin:0 0 12px;}
+#tooltip .next-btn{
+  font-family:var(--font-body); font-size:var(--fs-body-strong); font-weight:500; text-transform:capitalize;
+  background:var(--accent); color:#fff; border:none; border-radius:6px; padding:7px 14px; cursor:pointer;
+}
+
+/* ---------- Guide status bar (floating) ---------- */
+#status-bar{
+  position:absolute; left:50%; bottom:24px; transform:translateX(-50%) translateY(0); z-index:27; /* always above #tooltip (25) — status bar wins any overlap */
+  background:var(--background); border-radius:12px; box-shadow:var(--shadow-pop);
+  width:360px; opacity:0; pointer-events:none; transition:all .3s ease; overflow:hidden;
+}
+#status-bar.show{opacity:1; pointer-events:auto;}
+#status-bar .row{display:flex; align-items:center; gap:10px; padding:12px 14px;}
+#status-bar .dot{width:8px; height:8px; border-radius:50%; background:var(--accent); flex:0 0 auto; animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+#status-bar .icon-pause{width:14px; height:14px; flex:0 0 auto; color:var(--text-secondary);}
+#status-bar .mid{flex:1; min-width:0;}
+#status-bar .title-line{display:flex; align-items:center; gap:6px; font-size:var(--fs-body-strong); font-weight:500;}
+#status-bar .title-line .paused-tag{font-size:var(--fs-caption); font-weight:400; color:var(--text-secondary); font-family:var(--font-body);}
+#status-bar .step-count{font-size:var(--fs-caption); font-weight:400; color:var(--text-secondary); font-family:var(--font-body);}
+#status-bar .current-action{font-size:var(--fs-body); color:var(--text-secondary); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+#status-bar .stop-btn{
+  font-family:var(--font-body); font-size:var(--fs-label-strong); font-weight:500; text-transform:capitalize;
+  background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:5px 9px; cursor:pointer; flex:0 0 auto;
+}
+#status-bar .expand-chevron{width:14px; height:14px; cursor:pointer; color:var(--text-secondary); flex:0 0 auto;}
+#status-bar .expanded-body{display:none; border-top:1px solid var(--border);}
+#status-bar.expanded .expanded-body{display:block;}
+#status-bar .steps-list{padding:10px 14px 4px;}
+#status-bar .step-item{display:flex; align-items:center; gap:8px; padding:4px 0; font-size:var(--fs-label);}
+#status-bar .step-item svg{width:12px; height:12px; flex:0 0 auto;}
+#status-bar .feedback-row{display:flex; gap:10px; padding:6px 14px 10px; color:var(--text-secondary);}
+#status-bar .feedback-row svg{width:15px; height:15px; cursor:pointer;}
+#status-bar .sb-composer{display:flex; align-items:center; gap:8px; padding:10px 14px; border-top:1px solid var(--border);}
+#status-bar .sb-composer input{flex:1; border:none; outline:none; font-size:var(--fs-body); font-family:var(--font-body); background:transparent;}
+#status-bar .sb-composer .send{width:24px; height:24px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+#status-bar .sb-composer .send svg{width:12px; height:12px; color:#fff;}
+
+/* ---------- Toasts ---------- */
+#toast-wrap{position:absolute; left:50%; bottom:24px; transform:translateX(-50%); z-index:40; display:flex; flex-direction:column; gap:8px; align-items:center;}
+.toast{
+  background:var(--background); border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow-pop);
+  padding:8px 8px 8px 16px; display:flex; align-items:center; gap:16px; width:340px;
+  opacity:0; transform:translateY(10px); transition:all .3s ease;
+}
+.toast.show{opacity:1; transform:translateY(0);}
+.toast .msg{font-size:var(--fs-body); flex:1;}
+.toast .link{color:var(--accent); font-size:var(--fs-label-strong); font-weight:500; display:block; margin-top:2px; cursor:pointer;}
+.toast .close{width:20px; height:20px; color:var(--text-secondary); cursor:pointer; flex:0 0 auto;}
+.action-toast{width:340px; align-items:flex-start; padding:14px;}
+.action-toast .icon-chip{width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 auto; font-weight:700; font-size:14px;}
+.action-toast.success .icon-chip{background:var(--success-bg); color:var(--success);}
+.action-toast.denied .icon-chip{background:var(--error-bg); color:var(--error);}
+.action-toast .body{flex:1;}
+.action-toast .title{font-weight:500; font-size:13px;} /* Figma's Action Toast title is genuinely 13px Medium — a one-off, not a typo */
+.action-toast .detail{font-size:var(--fs-label); color:var(--text-secondary); margin-top:1px;}
+.action-toast .link{margin-top:6px;}
+
+/* ---------- Launcher (panel closed) ---------- */
+#launcher{
+  position:absolute; right:24px; bottom:24px; width:52px; height:52px; border-radius:50%;
+  background:var(--accent); box-shadow:var(--shadow-pop); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; z-index:35; opacity:0; pointer-events:none; transition:all .3s ease;
+}
+#launcher.show{opacity:1; pointer-events:auto;}
+#launcher svg{width:22px; height:22px; color:#fff;}
+
+/* ---------- Sidebar panel ---------- */
+#panel-wrap{
+  flex:0 0 auto; width:380px; background:var(--background);
+  box-shadow:0 0 32px rgba(74,90,138,.08);
+  position:relative; z-index:10;
+  display:flex; flex-direction:column; transition:width .35s ease, margin .35s ease; overflow:hidden;
+}
+#panel-wrap.closed{width:0;}
+#panel-header{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--border); flex:0 0 auto;}
+#panel-header .chevron{display:none; width:16px; height:16px; color:var(--text-secondary); cursor:pointer;}
+#panel-header .chevron.show{display:block;}
+#panel-header .title{flex:1; font-weight:600; font-size:var(--fs-heading);}
+#panel-header .close{width:16px; height:16px; color:var(--text-secondary); cursor:pointer;}
+#panel-body{flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; background:var(--surface);}
+#panel-composer{flex:0 0 auto; display:flex; align-items:center; gap:8px; border-top:1px solid var(--border); padding:12px 16px;}
+#panel-composer input{flex:1; border:1px solid var(--border); border-radius:20px; padding:9px 14px; font-size:var(--fs-body); font-family:var(--font-body); outline:none;}
+#panel-composer input:focus{border-color:var(--accent);}
+#panel-composer .send{width:32px; height:32px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; flex:0 0 auto; cursor:pointer; border:none;}
+#panel-composer .send svg{width:15px; height:15px; color:#fff;}
+
+/* ---------- Thread components ---------- */
+.bubble-user{align-self:flex-end; max-width:82%; background:var(--dark-surface); color:var(--on-dark-surface); border-radius:14px 14px 2px 14px; padding:10px 14px; font-size:var(--fs-body); line-height:1.45; opacity:0; transform:translateY(6px); animation:fadein .35s ease forwards;}
+.agent-text{font-size:var(--fs-body); line-height:1.5; color:var(--text-primary); opacity:0; transform:translateY(6px); animation:fadein .35s ease forwards;}
+@keyframes fadein{to{opacity:1; transform:translateY(0);}}
+
+.thinking-row{display:flex; align-items:center; gap:8px; font-size:var(--fs-body); color:var(--text-secondary); opacity:0; animation:fadein .3s ease forwards;}
+.spinner-dotring{width:16px; height:16px; position:relative; flex:0 0 auto;}
+.spinner-dotring span{position:absolute; width:2.4px; height:2.4px; border-radius:50%; background:var(--accent); top:50%; left:50%; transform-origin:0 0;}
+@keyframes spin-fade{0%,100%{opacity:.15;}50%{opacity:1;}}
+
+.resolved-selection{background:var(--background); border:1px solid var(--border); border-radius:10px; padding:12px 14px; font-size:var(--fs-body); opacity:0; animation:fadein .35s ease forwards;}
+.resolved-selection .q{font-weight:500; font-size:var(--fs-body-strong); margin-bottom:8px;}
+.resolved-selection hr{border:none; border-top:1px solid var(--border); margin:8px 0;}
+.resolved-selection .a-row{display:flex; align-items:center; gap:8px; color:var(--text-primary);}
+.resolved-selection .a-row svg{width:14px; height:14px; color:var(--success); flex:0 0 auto;}
+.resolved-selection .picker-option{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border:1px solid var(--border); border-radius:6px; margin-top:6px; cursor:pointer; font-size:var(--fs-body);}
+.resolved-selection .picker-option svg{width:13px; height:13px; color:var(--text-secondary); flex:0 0 auto;}
+.resolved-selection .picker-option:hover{border-color:var(--accent);}
+
+.ai-card{background:var(--background); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:var(--fs-body); opacity:0; animation:fadein .35s ease forwards;}
+.ai-card .card-title{font-family:var(--font-body); font-weight:500; font-size:var(--fs-label-strong); letter-spacing:.04em; color:var(--text-secondary); margin-bottom:8px; text-transform:uppercase;}
+.ai-card .card-q{font-weight:500; font-size:var(--fs-body-strong); margin-bottom:8px;}
+.ai-card hr{border:none; border-top:1px solid var(--border); margin:10px 0;}
+.ai-card .card-a{line-height:1.5; color:var(--text-primary);}
+.ai-card .citation{display:flex; align-items:center; gap:4px; color:var(--accent); font-weight:500; font-size:var(--fs-label-strong); margin-top:10px; cursor:pointer;}
+.ai-card .citation svg{width:11px; height:11px;}
+.ai-card .info-text{line-height:1.5;}
+
+.cta-group{display:flex; gap:8px; margin-top:12px;}
+.cta-group button{
+  font-family:var(--font-body); font-size:var(--fs-label-strong); font-weight:500; text-transform:capitalize; border-radius:6px;
+  padding:8px 14px; cursor:pointer; border:1px solid transparent;
+}
+.cta-group .primary{background:var(--accent); color:var(--on-accent);}
+.cta-group .primary:hover{opacity:.88;}
+.cta-group .secondary{background:transparent; border-color:var(--border); color:var(--text-primary);}
+.cta-group .primary.error-cta{background:var(--error);}
+.cta-group button:disabled{opacity:.5; cursor:default;}
+
+.action-list-card{background:var(--background); border:1px solid var(--border); border-radius:10px; padding:12px; font-size:var(--fs-body); opacity:0; animation:fadein .35s ease forwards;}
+.action-list-card .list-title{font-weight:500; font-size:var(--fs-body-strong); margin-bottom:6px; padding:0 4px;}
+.action-row{display:flex; justify-content:space-between; align-items:center; padding:10px 8px; border-radius:6px; cursor:pointer;}
+.action-row:hover{background:var(--surface);}
+.action-row svg{width:13px; height:13px; color:var(--text-secondary);}
+
+.guide-card{background:var(--background); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:var(--fs-label); opacity:0; animation:fadein .35s ease forwards;}
+.guide-card.failed{border-color:var(--border);} /* Figma's Guide Card / Failed is plain white + border — only the tag/icon go red, no card-level tint */
+.guide-card .gc-title-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;}
+.guide-card .gc-title-left{display:flex; align-items:center; gap:6px; font-weight:500; font-size:var(--fs-body-strong);}
+.guide-card .gc-title-left svg{width:13px; height:13px; flex:0 0 auto;}
+.guide-card .gc-tag{font-family:var(--font-body); font-size:var(--fs-caption); font-weight:400; color:var(--text-secondary);}
+.guide-card.failed .gc-tag{color:var(--error);}
+.guide-card .gc-narration{color:var(--text-secondary); font-size:var(--fs-label); margin:4px 0 10px;}
+.guide-card .gc-step{display:flex; align-items:center; gap:8px; padding:4px 0; font-size:var(--fs-label);}
+.guide-card .gc-step svg{width:13px; height:13px; flex:0 0 auto;}
+.guide-card .gc-step.done{color:var(--text-primary);}
+.guide-card .gc-step.active{color:var(--text-primary); font-weight:500;}
+.guide-card .gc-step.upcoming{color:var(--text-secondary);}
+.guide-card .gc-btn-row{margin-top:10px;}
+.guide-card .gc-btn-row button{
+  font-family:var(--font-body); font-size:var(--fs-label-strong); font-weight:500; text-transform:capitalize;
+  background:var(--surface); border:1px solid var(--border); border-radius:5px; padding:5px 10px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:5px;
+}
+.guide-card .gc-btn-row button svg{width:10px; height:10px;}
+.guide-card .gc-report{font-size:var(--fs-caption); color:var(--text-secondary); font-style:italic; margin-top:8px;}
+
+.confirmation-card{background:var(--background); border:1px solid var(--border); border-radius:10px; padding:14px; font-size:var(--fs-body); opacity:0; animation:fadein .35s ease forwards;}
+.confirmation-card .cc-q{font-weight:500; font-size:var(--fs-body-strong); margin-bottom:10px;}
+.confirmation-card table{width:100%; border-collapse:collapse; font-size:var(--fs-label);}
+.confirmation-card td{padding:5px 0; border-bottom:1px solid var(--border);}
+.confirmation-card td:last-child{text-align:right; font-weight:500;}
+.confirmation-card tr:last-child td{border-bottom:none; font-weight:700; padding-top:8px;}
+
+.resource-card{background:var(--background); display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--border); border-radius:10px; cursor:pointer; opacity:0; animation:fadein .3s ease forwards;}
+.resource-card:hover{border-color:var(--accent);}
+.resource-card .icon-sq{width:34px; height:34px; border-radius:8px; background:var(--surface); display:flex; align-items:center; justify-content:center; flex:0 0 auto; color:var(--text-primary);}
+.resource-card .icon-sq svg{width:16px; height:16px;}
+.resource-card .rc-body{flex:1; min-width:0;}
+.resource-card .rc-title{font-weight:500; font-size:var(--fs-body-strong);}
+.resource-card .rc-meta{font-size:var(--fs-label); color:var(--text-secondary); display:flex; align-items:center; gap:4px; margin-top:1px;}
+.resource-card .rc-meta svg{width:11px; height:11px; color:var(--success);}
+.resource-card>svg:last-child{width:13px; height:13px; color:var(--text-secondary); flex:0 0 auto;}
+
+.empty-state{padding:40px 8px 8px; text-align:left;}
+.empty-state .es-title{font-weight:500; font-size:var(--fs-body-strong); margin-bottom:6px;}
+.empty-state .es-body{font-size:var(--fs-body); color:var(--text-secondary); line-height:1.5; margin-bottom:14px;}
+
+.search-hint{font-size:var(--fs-caption); color:var(--text-secondary); text-align:center; padding:8px 0; border-top:1px solid var(--border); opacity:0; transition:opacity .25s ease; margin-top:auto; flex:0 0 auto; width:100%;}
+.search-hint.show{opacity:1;}
+
+.chip-row{margin-top:14px; padding-top:14px; border-top:1px solid var(--border); opacity:0; animation:fadein .3s ease forwards;}
+.chip-row-label{font-size:var(--fs-label); color:var(--text-secondary); margin-bottom:8px;}
+.chips{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{font-family:var(--font-body); font-size:var(--fs-label); font-weight:500; color:var(--accent); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:6px 12px; cursor:pointer; transition:border-color .15s ease, background .15s ease;}
+.chip:hover{border-color:var(--accent); background:var(--background);}
+
+.cursor-typed{display:inline-block; width:1px; height:1em; background:currentColor; vertical-align:middle; animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-thumb{background:#d8d6d0; border-radius:4px;}
+
+@media (max-width: 860px){
+  #stage{flex-direction:column;}
+  #panel-wrap{width:100%!important; height:45%;}
+  #host-wrap{padding:12px;}
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand">DUBOT · END USER JOURNEYS</div>
+  <select id="journey-select"></select>
+  <select id="scenario-select"></select>
+  <div id="scenario-desc"></div>
+  <div id="dev-tools">
+    <button class="ghost" id="replay-btn">↻ Replay</button>
+  </div>
+</div>
+
+<div id="stage">
+  <div id="host-wrap">
+    <div id="host">
+      <div id="host-nav">
+        <div class="brandname">Your Product</div>
+        <div class="help-btn" id="help-btn">?</div>
+      </div>
+      <div id="host-body"></div>
+
+      <div id="spotlight-ring"></div>
+      <div id="cursor-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M5 3l14 8-6 2-2 6-6-16z" fill="#4A5FD9" stroke="white" stroke-width="2.3" stroke-linejoin="round"/></svg></div>
+      <div id="tooltip">
+        <div class="pointer" id="tooltip-pointer"></div>
+        <div class="top-row"><div class="dots" id="tooltip-dots"></div><button class="skip" id="tooltip-skip">Skip</button></div>
+        <div class="step-title" id="tooltip-title"></div>
+        <div class="step-text" id="tooltip-text"></div>
+        <button class="next-btn" id="tooltip-next">Next</button>
+      </div>
+      <div id="status-bar">
+        <div class="row">
+          <div class="dot" id="sb-dot"></div>
+          <svg id="sb-pause-icon" class="icon-pause" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>
+          <div class="mid">
+            <div class="title-line"><span id="sb-title"></span><span class="paused-tag" id="sb-paused-tag" style="display:none">Paused</span></div>
+            <div class="current-action" id="sb-action"></div>
+          </div>
+          <span class="step-count" id="sb-stepcount"></span>
+          <button class="stop-btn" id="sb-stop">Stop</button>
+          <svg class="expand-chevron" id="sb-chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="expanded-body">
+          <div class="steps-list" id="sb-steps"></div>
+          <div class="feedback-row">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M7 10v10H4V10h3zm3.5 10a2 2 0 01-2-2v-8l4-6 1 .5c.5.3.8.8.8 1.4V8h4.4a2 2 0 012 2.3l-1 6A2 2 0 0117.7 20h-7.2z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" style="transform:scaleY(-1)"><path d="M7 10v10H4V10h3zm3.5 10a2 2 0 01-2-2v-8l4-6 1 .5c.5.3.8.8.8 1.4V8h4.4a2 2 0 012 2.3l-1 6A2 2 0 0117.7 20h-7.2z" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+          </div>
+          <div class="sb-composer">
+            <input id="sb-input" placeholder="Or type what you need..." readonly>
+            <div class="send"><svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>
+      </div>
+      <div id="toast-wrap"></div>
+      <div id="launcher"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2"/><path d="M12 4a8 8 0 100 16 8 8 0 000-16z" stroke="white" stroke-width="1.6"/><circle cx="12" cy="12" r="2" fill="white"/></svg></div>
+    </div>
+  </div>
+
+  <div id="panel-wrap">
+    <div id="panel-header">
+      <svg class="chevron" id="panel-back" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="title">How can we help?</div>
+      <svg class="close" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <div id="panel-body"></div>
+    <div id="panel-composer">
+      <input id="composer-input" placeholder="Search or ask anything..." readonly>
+      <div class="send" id="composer-send"><svg viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Dubot — End User Journeys interactive prototype
+// Single state machine driving a shared shell (host mock + sidebar panel).
+'use strict';
+
+/* ---------------- Icons ---------------- */
+const ICON = {
+  check: `<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  x: `<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  dotFilled: `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg>`,
+  circleOutline: `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2"/></svg>`,
+  alert: `<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></svg>`,
+  pause: `<svg viewBox="0 0 24 24" fill="none"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" fill="none"><path d="M7 5l12 7-12 7V5z" fill="currentColor"/></svg>`,
+  externalLink: `<svg viewBox="0 0 24 24" fill="none"><path d="M14 4h6v6M20 4L10 14M9 5H5a1 1 0 00-1 1v13a1 1 0 001 1h13a1 1 0 001-1v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  playCircle: `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M10 8.5l6 3.5-6 3.5v-7z" fill="currentColor"/></svg>`,
+  headset: `<svg viewBox="0 0 24 24" fill="none"><path d="M4 13v-1a8 8 0 0116 0v1" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="4" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="17" y="13" width="4" height="6" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M19 19v1a2 2 0 01-2 2h-3" stroke="currentColor" stroke-width="1.6"/></svg>`,
+  tour: `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v14" stroke="currentColor" stroke-width="1.6"/><path d="M12 11h6l-2 2 2 2h-6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>`,
+  chev: `<svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+};
+
+/* ---------------- DOM refs ---------------- */
+const $ = (sel) => document.querySelector(sel);
+const host = $('#host'), hostBody = $('#host-body'), helpBtn = $('#help-btn');
+const panelWrap = $('#panel-wrap'), panelBody = $('#panel-body'), panelBack = $('#panel-back');
+const composerInput = $('#composer-input'), composerSend = $('#composer-send');
+const launcher = $('#launcher');
+const toastWrap = $('#toast-wrap');
+const spotlightRing = $('#spotlight-ring'), cursorIcon = $('#cursor-icon');
+const tooltip = $('#tooltip'), tooltipPointer = $('#tooltip-pointer'), tooltipDots = $('#tooltip-dots'),
+      tooltipTitle = $('#tooltip-title'), tooltipText = $('#tooltip-text'), tooltipNext = $('#tooltip-next'), tooltipSkip = $('#tooltip-skip');
+const statusBar = $('#status-bar'), sbDot = $('#sb-dot'), sbPauseIcon = $('#sb-pause-icon'), sbTitle = $('#sb-title'),
+      sbPausedTag = $('#sb-paused-tag'), sbAction = $('#sb-action'), sbStepcount = $('#sb-stepcount'),
+      sbStop = $('#sb-stop'), sbChevron = $('#sb-chevron'), sbSteps = $('#sb-steps'), sbInput = $('#sb-input');
+const journeySelect = $('#journey-select'), scenarioSelect = $('#scenario-select'), scenarioDesc = $('#scenario-desc');
+const replayBtn = $('#replay-btn');
+
+/* ---------------- Utilities ---------------- */
+const delay = (ms) => new Promise((res) => { runToken.timers.push(setTimeout(res, ms)); });
+function waitForClick(el) {
+  return new Promise((resolve) => {
+    const handler = () => { el.removeEventListener('click', handler); resolve(); };
+    el.addEventListener('click', handler);
+    runToken.cleanups.push(() => el.removeEventListener('click', handler));
+  });
+}
+function el(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
+async function typeInto(inputEl, text, opts = {}) {
+  const tok = opts.token || runToken;
+  inputEl.value = '';
+  for (let i = 0; i < text.length; i++) {
+    if (isCancelled(tok)) return;
+    inputEl.value += text[i];
+    if (opts.onType) opts.onType(inputEl.value);
+    await delay(38 + Math.random() * 35);
+  }
+}
+
+/* runToken lets Replay hard-cancel an in-flight sequence */
+let runToken = { cancelled: false, timers: [], cleanups: [] };
+function newRunToken() {
+  if (runToken) {
+    runToken.cancelled = true;
+    runToken.timers.forEach(clearTimeout);
+    runToken.cleanups.forEach((fn) => fn());
+  }
+  return { cancelled: false, timers: [], cleanups: [] };
+}
+function isCancelled(token) { return token.cancelled; }
+
+/* ---------------- Thread rendering ---------------- */
+function appendThread(node, opts = {}) {
+  panelBody.appendChild(node);
+  panelBody.scrollTop = panelBody.scrollHeight;
+  return node;
+}
+function clearThread() { panelBody.innerHTML = ''; }
+
+function userBubble(text) {
+  return el(`<div class="bubble-user">${text}</div>`);
+}
+function agentText(text) {
+  return el(`<div class="agent-text">${text}</div>`);
+}
+function thinkingRow(text) {
+  const dots = Array.from({ length: 8 }).map((_, i) => {
+    const angle = (i / 8) * 2 * Math.PI;
+    const r = 6;
+    const x = 8 + r * Math.cos(angle), y = 8 + r * Math.sin(angle);
+    const delayS = (i / 8) * 1.2;
+    return `<span style="left:${x}px;top:${y}px;animation:spin-fade 1.2s ${delayS}s infinite;"></span>`;
+  }).join('');
+  const node = el(`<div class="thinking-row"><div class="spinner-dotring">${dots}</div><span class="thinking-label">${text}</span></div>`);
+  return node;
+}
+function resolvedSelection(question, answer) {
+  return el(`<div class="resolved-selection"><div class="q">${question}</div><hr>
+    <div class="a-row">${ICON.check}<span>${answer}</span></div></div>`);
+}
+function resolvedSelectionPicker(question, options, onPick) {
+  const node = el(`<div class="resolved-selection"><div class="q">${question}</div></div>`);
+  options.forEach((opt) => {
+    const row = el(`<div class="picker-option"><span>${opt}</span>${ICON.chev}</div>`);
+    row.addEventListener('click', () => onPick(opt), { once: true });
+    node.appendChild(row);
+  });
+  return node;
+}
+function aiCardQA({ question, answer, citation }) {
+  return el(`<div class="ai-card"><div class="card-q">${question}</div><hr>
+    <div class="card-a">${answer}</div>
+    ${citation ? `<div class="citation">${ICON.externalLink}<span>${citation}</span></div>` : ''}</div>`);
+}
+function aiCardTitleQA({ title, question, answer }) {
+  return el(`<div class="ai-card"><div class="card-title">${title}</div>
+    <div class="card-q">${question}</div><hr><div class="card-a">${answer}</div></div>`);
+}
+function aiCardInfo({ text }) {
+  return el(`<div class="ai-card"><div class="info-text">${text}</div></div>`);
+}
+function ctaGroup(container, buttons) {
+  const group = el(`<div class="cta-group"></div>`);
+  buttons.forEach((b) => {
+    const btn = el(`<button class="${b.kind || 'secondary'}${b.error ? ' error-cta' : ''}">${b.label}</button>`);
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('button').forEach((x) => x.disabled = true);
+      b.onClick && b.onClick();
+    });
+    group.appendChild(btn);
+  });
+  container.appendChild(group);
+  return group;
+}
+function actionListCard(title, actions, onPick) {
+  const node = el(`<div class="action-list-card"><div class="list-title">${title}</div></div>`);
+  actions.forEach((a) => {
+    const row = el(`<div class="action-row"><span>${a}</span>${ICON.chev}</div>`);
+    row.addEventListener('click', () => onPick(a), { once: true });
+    node.appendChild(row);
+  });
+  return node;
+}
+function guideCard({ status, title, tag, narration, steps, reportCaption, buttons }) {
+  const iconMap = { running: '', paused: ICON.pause, failed: ICON.alert, cancelled: ICON.x };
+  const stepIcon = (s) => s.state === 'done' ? ICON.check : s.state === 'active' ? ICON.dotFilled : s.state === 'x' ? ICON.x : ICON.circleOutline;
+  const stepColor = (s) => s.state === 'done' ? 'var(--success)' : s.state === 'active' ? 'var(--accent)' : s.state === 'x' ? 'var(--error)' : 'var(--text-secondary)';
+  const node = el(`<div class="guide-card ${status === 'failed' ? 'failed' : ''}">
+    <div class="gc-title-row">
+      <div class="gc-title-left">${iconMap[status] ? `<span style="color:${status === 'failed' ? 'var(--error)' : 'var(--text-secondary)'}">${iconMap[status]}</span>` : ''}<span>${title}</span></div>
+      <span class="gc-tag">${tag}</span>
+    </div>
+    <div class="gc-narration">${narration}</div>
+    ${steps.map((s) => `<div class="gc-step ${s.state === 'done' ? 'done' : s.state === 'active' ? 'active' : 'upcoming'}"><span style="color:${stepColor(s)}">${stepIcon(s)}</span><span>${s.label}</span></div>`).join('')}
+    ${reportCaption ? `<div class="gc-report">${reportCaption}</div>` : ''}
+  </div>`);
+  if (buttons && buttons.length) {
+    const row = el(`<div class="gc-btn-row"></div>`);
+    buttons.forEach((b) => {
+      const btn = el(`<button>${b.icon || ''}<span>${b.label}</span></button>`);
+      btn.addEventListener('click', b.onClick);
+      row.appendChild(btn);
+    });
+    node.appendChild(row);
+  }
+  return node;
+}
+function confirmationCard(question, rows) {
+  return el(`<div class="confirmation-card"><div class="cc-q">${question}</div>
+    <table>${rows.map((r) => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table></div>`);
+}
+function resourceCard({ icon, title, meta, completed }) {
+  return el(`<div class="resource-card"><div class="icon-sq">${icon}</div>
+    <div class="rc-body"><div class="rc-title">${title}</div>
+    <div class="rc-meta">${completed ? ICON.check : ''}<span>${meta}</span></div></div>
+    ${ICON.chev}</div>`);
+}
+
+/* ---------------- Toasts ---------------- */
+function showToast({ message, link, ms = 6000 }) {
+  const node = el(`<div class="toast"><div class="msg">${message}${link ? `<span class="link">${link}</span>` : ''}</div>${ICON.x}</div>`);
+  node.querySelector('.close') ; // no-op
+  const closeIcon = node.lastElementChild;
+  closeIcon.classList.add('close');
+  closeIcon.addEventListener('click', () => remove());
+  toastWrap.appendChild(node);
+  requestAnimationFrame(() => node.classList.add('show'));
+  function remove() { node.classList.remove('show'); setTimeout(() => node.remove(), 300); }
+  if (ms) setTimeout(remove, ms);
+  return node;
+}
+function showActionToast({ status, title, detail, link }) {
+  const glyph = status === 'success' ? '✓' : '!';
+  const node = el(`<div class="toast action-toast ${status}"><div class="icon-chip">${glyph}</div>
+    <div class="body"><div class="title">${title}</div><div class="detail">${detail}</div>
+    ${link ? `<span class="link">${link}</span>` : ''}</div>${ICON.x}</div>`);
+  const closeIcon = node.lastElementChild; closeIcon.classList.add('close');
+  closeIcon.addEventListener('click', () => remove());
+  toastWrap.appendChild(node);
+  requestAnimationFrame(() => node.classList.add('show'));
+  function remove() { node.classList.remove('show'); setTimeout(() => node.remove(), 300); }
+  return node;
+}
+function clearToasts() { toastWrap.innerHTML = ''; }
+
+/* ---------------- Panel open/close ---------------- */
+function setPanelOpen(open, { back = false } = {}) {
+  panelWrap.classList.toggle('closed', !open);
+  launcher.classList.toggle('show', !open);
+  host.classList.toggle('wide', !open);
+  panelBack.classList.toggle('show', back);
+}
+launcher.addEventListener('click', () => { if (currentOnLauncherClick) currentOnLauncherClick(); });
+let currentOnLauncherClick = null;
+
+/* ---------------- Host views ---------------- */
+function renderDashboardHost() {
+  hostBody.innerHTML = `
+    <h1>Dashboard</h1>
+    <div class="stats-row" data-spot="stats">
+      <div class="stat-card"><div class="label">Open items</div><div class="value">12</div></div>
+      <div class="stat-card"><div class="label">In progress</div><div class="value">4</div></div>
+      <div class="stat-card"><div class="label">Completed</div><div class="value">38</div></div>
+    </div>
+    <div class="list" data-spot="recent">
+      <div class="list-row"><span>Item one: Draft</span></div>
+      <div class="list-row"><span>Item two: Sent</span></div>
+      <div class="list-row"><span>Item three: Complete</span></div>
+    </div>`;
+  helpBtn.classList.remove('show');
+}
+function renderInvoiceHost({ discountApplied = false, noteText = null } = {}) {
+  hostBody.innerHTML = `
+    <div class="invoice-title">Invoice #1042: Priya Shah</div>
+    <div class="invoice-list">
+      <div class="invoice-row"><span>Web design</span><span>$1,200.00</span></div>
+      <div class="invoice-row"><span>Rush fee</span><span>$300.00</span></div>
+      <div class="invoice-row" data-spot="discount"><span>Discount</span><span class="discount-field ${discountApplied ? 'applied' : ''}">${discountApplied ? '10%' : '–'}</span></div>
+      ${noteText !== null ? `<div class="invoice-row note" data-spot="note"><span>Note to client</span><span class="note-text">${noteText || '–'}</span></div>` : ''}
+    </div>
+    <div class="invoice-total"><div class="label">Total</div><div class="value">$${discountApplied ? '1,350.00' : '1,500.00'}</div></div>`;
+  helpBtn.classList.remove('show');
+}
+function showHelpBtn() { helpBtn.classList.add('show'); }
+
+/* ---------------- Spotlight / cursor / tooltip positioning ---------------- */
+function hostRect() { return host.getBoundingClientRect(); }
+function spotRect(key) {
+  const target = host.querySelector(`[data-spot="${key}"]`) || (key === 'help' ? helpBtn : null);
+  if (!target) return null;
+  const tr = target.getBoundingClientRect(), hr = hostRect();
+  return { top: tr.top - hr.top, left: tr.left - hr.left, width: tr.width, height: tr.height };
+}
+function showSpotlight(key) {
+  const r = spotRect(key);
+  if (!r) return;
+  spotlightRing.style.top = (r.top - 6) + 'px';
+  spotlightRing.style.left = (r.left - 6) + 'px';
+  spotlightRing.style.width = (r.width + 12) + 'px';
+  spotlightRing.style.height = (r.height + 12) + 'px';
+  spotlightRing.classList.add('show');
+  cursorIcon.style.top = (r.top + r.height / 2 - 4) + 'px';
+  cursorIcon.style.left = (r.left + r.width / 2 - 7) + 'px';
+  cursorIcon.classList.add('show');
+}
+function hideSpotlight() { spotlightRing.classList.remove('show'); cursorIcon.classList.remove('show'); }
+function moveCursorTo(key) {
+  const r = spotRect(key);
+  if (!r) return;
+  cursorIcon.style.top = (r.top + r.height / 2 - 4) + 'px';
+  cursorIcon.style.left = (r.left + r.width / 2 - 7) + 'px';
+  cursorIcon.classList.add('show');
+}
+let lastTooltip = null;
+function showTooltip(key, opts) {
+  lastTooltip = { key, opts };
+  const { dotIndex, dotCount, title, text, showSkip = true } = opts;
+  const r = spotRect(key);
+  if (!r) return;
+  // set content first so we can measure the tooltip's real height before placing it
+  // a single-step walkthrough has nothing to show progress through — no dots
+  tooltipDots.style.display = dotCount > 1 ? '' : 'none';
+  tooltipDots.innerHTML = dotCount > 1 ? Array.from({ length: dotCount }).map((_, i) => `<span class="${i === dotIndex ? 'active' : ''}"></span>`).join('') : '';
+  tooltipSkip.style.display = showSkip ? '' : 'none';
+  tooltipTitle.textContent = title;
+  tooltipText.textContent = text;
+
+  let left = r.left + r.width / 2 - 130;
+  left = Math.max(8, Math.min(left, hostRect().width - 268));
+
+  const belowTop = r.top + r.height + 16;
+  const tooltipH = tooltip.offsetHeight || 150;
+
+  // Rule: the status bar always wins any overlap — move the tooltip somewhere else when possible.
+  const sbShowing = statusBar.classList.contains('show');
+  const sbTop = sbShowing ? (host.clientHeight - 24 - statusBar.offsetHeight) : Infinity;
+  const belowWouldOverlapStatusBar = sbShowing && (belowTop + tooltipH + 8) > sbTop;
+  const aboveTop = r.top - tooltipH - 16;
+  const placeAbove = belowWouldOverlapStatusBar && aboveTop > 8;
+
+  const top = placeAbove ? aboveTop : belowTop;
+  tooltip.style.top = top + 'px';
+  tooltip.style.left = left + 'px';
+  if (placeAbove) {
+    tooltipPointer.style.top = 'auto';
+    tooltipPointer.style.bottom = '-6px';
+  } else {
+    tooltipPointer.style.top = '-6px';
+    tooltipPointer.style.bottom = 'auto';
+  }
+  tooltipPointer.style.left = (r.left + r.width / 2 - left - 6) + 'px';
+  tooltip.classList.add('show');
+}
+function hideTooltip() { tooltip.classList.remove('show'); lastTooltip = null; }
+// Re-run tooltip placement against current status-bar size/visibility — call this any time
+// the status bar's height changes (e.g. it expands) while a tooltip may already be showing,
+// so the "move the tooltip, don't stack on the status bar" rule still holds.
+function repositionTooltip() {
+  if (lastTooltip && tooltip.classList.contains('show')) showTooltip(lastTooltip.key, lastTooltip.opts);
+}
+
+/* ---------------- Status bar ---------------- */
+function updateStatusBar({ title, stepCount, action, paused = false, steps = null, composerVal = null, expanded = null }) {
+  statusBar.classList.add('show');
+  sbDot.style.display = paused ? 'none' : '';
+  sbPauseIcon.style.display = paused ? '' : 'none';
+  sbTitle.textContent = title;
+  sbPausedTag.style.display = paused ? '' : 'none';
+  sbAction.textContent = action;
+  sbStepcount.textContent = stepCount || '';
+  sbStepcount.style.display = stepCount ? '' : 'none';
+  if (steps) {
+    sbSteps.innerHTML = steps.map((s) => {
+      const icon = s.state === 'done' ? ICON.check : s.state === 'active' ? ICON.dotFilled : ICON.circleOutline;
+      const color = s.state === 'done' ? 'var(--success)' : s.state === 'active' ? 'var(--accent)' : 'var(--text-secondary)';
+      return `<div class="step-item"><span style="color:${color}">${icon}</span><span>${s.label}</span></div>`;
+    }).join('');
+  }
+  if (composerVal !== null) sbInput.value = composerVal;
+  if (expanded !== null) statusBar.classList.toggle('expanded', expanded);
+  // status bar size may just have changed (expand/collapse, step list appearing) — re-run the
+  // "tooltip moves, never stacks under the status bar" rule against the new size.
+  // (Deliberately synchronous, not requestAnimationFrame — rAF is throttled/paused on
+  // backgrounded tabs, which would silently break this in real usage too, not just testing.)
+  repositionTooltip();
+}
+function hideStatusBar() { statusBar.classList.remove('show'); statusBar.classList.remove('expanded'); }
+let chevronHandler = () => statusBar.classList.toggle('expanded');
+sbChevron.addEventListener('click', () => chevronHandler());
+
+/* ==================================================================
+   JOURNEY SCRIPTS
+   Each scenario is an async function(token) that drives the shared
+   shell. Always call resetShell() at the start of a scenario.
+   ================================================================== */
+
+function resetShell() {
+  clearThread(); clearToasts(); hideSpotlight(); hideTooltip(); hideStatusBar();
+  statusBar.classList.remove('expanded');
+  composerInput.value = ''; composerInput.placeholder = 'Search or ask anything...';
+  sbInput.value = '';
+  setPanelOpen(true, { back: false });
+  currentOnLauncherClick = null;
+  lastShownKey = null;
+  chevronHandler = () => statusBar.classList.toggle('expanded');
+}
+async function t(ms) { await delay(ms); }
+function cancelled(token) { return isCancelled(token); }
+
+/* ---------- Journey 1 : I'm just browsing ---------- */
+const RESOURCES_1 = [
+  { icon: ICON.tour, title: 'Getting started', meta: 'Guide · 4 steps' },
+  { icon: ICON.externalLink, title: 'Help center', meta: 'Link · opens in new tab' },
+  { icon: ICON.playCircle, title: 'Product walkthrough', meta: 'Video · 2 min' },
+  { icon: ICON.headset, title: 'Talk to support', meta: 'Team' },
+];
+let lastShownKey = null;
+function renderResourceList(filterText) {
+  const shown = filterText ? (filterText.trim() ? [RESOURCES_1[0]] : RESOURCES_1) : RESOURCES_1;
+  const key = shown.map((r) => r.title).join('|');
+  if (key === lastShownKey) return shown; // avoid re-render/re-animate on every keystroke when the visible set hasn't changed
+  lastShownKey = key;
+  panelBody.innerHTML = '';
+  shown.forEach((r) => {
+    const card = resourceCard(r);
+    card.addEventListener('click', () => {
+      if (r.title === 'Getting started') { journeySelect.value = '5'; onJourneyChange(); }
+    });
+    panelBody.appendChild(card);
+  });
+  return shown;
+}
+
+async function j1_main(token) {
+  resetShell();
+  renderDashboardHostSkip: renderDashboardHost();
+  renderResourceList('');
+  renderQuickActionChips();
+  if (cancelled(token)) return;
+  await t(1200);
+  if (cancelled(token)) return;
+  composerInput.removeAttribute('readonly');
+  composerInput.focus();
+  await typeInto(composerInput, 'discount', { onType: (v) => { removeQuickActionChips(); renderResourceList(v); addSearchHint(); } });
+  if (cancelled(token)) return;
+  await t(1400);
+  if (cancelled(token)) return;
+  // now clear and type a no-match query
+  removeSearchHint();
+  await typeInto(composerInput, '', {});
+  await t(200);
+  await typeInto(composerInput, 'quantum invoicing', { onType: (v) => { renderResourceList(v); addSearchHint(); } });
+  if (cancelled(token)) return;
+  await t(800);
+  if (cancelled(token)) return;
+  removeSearchHint();
+  panelBody.innerHTML = `<div class="empty-state"><div class="es-title">No resources found for "quantum invoicing"</div>
+    <div class="es-body">I couldn't find a matching resource. Ask me about it and I'll help you figure it out</div></div>`;
+  ctaGroup(panelBody.lastElementChild, [{ label: 'Ask AI about this', kind: 'primary', onClick: () => showToast({ message: '→ continues into Answer mode (Journey 2)' }) }]);
+}
+function addSearchHint() {
+  if (panelBody.querySelector('.search-hint')) return;
+  const hint = el(`<div class="search-hint">No match? Press Enter to ask AI</div>`);
+  panelBody.appendChild(hint);
+  requestAnimationFrame(() => hint.classList.add('show'));
+}
+function removeSearchHint() { const h = panelBody.querySelector('.search-hint'); if (h) h.remove(); }
+
+// Idle-state affordance: shows the AI can execute actions, not just answer questions.
+// Same pattern validated in the segment-creation dogfood launcher (suggestion chips vs. blank input).
+const QUICK_ACTION_CHIPS = ['Build a segment', 'Set up an integration', "Summarize this week's activity"];
+function renderQuickActionChips() {
+  if (panelBody.querySelector('.chip-row')) return;
+  const row = el(`<div class="chip-row">
+    <div class="chip-row-label">Get set up:</div>
+    <div class="chips">${QUICK_ACTION_CHIPS.map((c) => `<button class="chip">${c}</button>`).join('')}</div>
+  </div>`);
+  row.querySelectorAll('.chip').forEach((c) => {
+    c.addEventListener('click', () => showToast({ message: `→ "${c.textContent}" starts the wizard (Journey 6, Do)` }));
+  });
+  panelBody.appendChild(row);
+}
+function removeQuickActionChips() { const r = panelBody.querySelector('.chip-row'); if (r) r.remove(); }
+
+async function j1_empty(token) {
+  resetShell();
+  renderDashboardHost();
+  panelBody.innerHTML = `<div class="empty-state"><div class="es-title">Nothing here yet</div>
+    <div class="es-body">Nothing here yet. Ask me anything and I'll do my best to help.</div></div>`;
+  renderQuickActionChips();
+}
+
+/* ---------- Journey 2 : I have a question ---------- */
+async function j2_main(token) {
+  resetShell(); renderDashboardHost();
+  composerInput.placeholder = 'Ask a follow-up...';
+  const q = 'hey quick question, when I make an invoice is there a way to add a discount for a client, or do I just have to change the total manually?';
+  appendThread(userBubble(q));
+  await t(900); if (cancelled(token)) return;
+  const th = thinkingRow('Checking the help center…'); appendThread(th);
+  await t(1700); if (cancelled(token)) return;
+  th.remove();
+  appendThread(aiCardQA({ question: 'How do I add a discount to an invoice?', answer: 'Open the invoice, click the Discount field next to the line items, and enter a percentage or flat amount, and the total updates automatically.', citation: 'From: Invoicing Basics' }));
+  await t(500); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'Want me to show you on one of your invoices?' });
+  appendThread(info);
+  ctaGroup(info, [
+    { label: 'Show me', kind: 'primary', onClick: () => { appendThread(agentText('Great, jumping you into the walkthrough...')); showToast({ message: '→ continues into Journey 6 (Show me / do this for me)' }); } },
+    { label: 'Not now', kind: 'secondary', onClick: () => appendThread(agentText('No problem, I\'m here if you need it.')) },
+  ]);
+}
+async function j2_noconfident(token) {
+  resetShell(); renderDashboardHost(); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('do you support multi-currency invoicing across different tax regions?'));
+  await t(900); if (cancelled(token)) return;
+  const th = thinkingRow('Checking the help center…'); appendThread(th);
+  await t(1600); if (cancelled(token)) return;
+  th.remove();
+  const info = aiCardInfo({ text: 'I don\'t have a confident answer for that in our help docs. I don\'t want to guess on something tax-related.' });
+  appendThread(info);
+  ctaGroup(info, [{ label: 'Talk to a person', kind: 'primary', onClick: (e) => { showToast({ message: 'Connecting you now…' }); } }]);
+}
+async function j2_disambiguation(token) {
+  resetShell(); renderDashboardHost(); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('what\'s the balance on Priya\'s invoice?'));
+  await t(900); if (cancelled(token)) return;
+  const picker = resolvedSelectionPicker('Which invoice would you like to know about?', ['Invoice #1042: $1,500.00', 'Invoice #0994: $820.00'], async (choice) => {
+    picker.replaceWith(resolvedSelection('Which invoice would you like to know about?', 'Invoice #1042: $1,500.00'));
+    appendThread(userBubble('Invoice #1042'));
+    await t(700);
+    const th = thinkingRow('Checking Invoice #1042…'); appendThread(th);
+    await t(1200);
+    th.remove();
+    appendThread(aiCardQA({ question: 'What\'s the balance on Invoice #1042?', answer: 'Invoice #1042 for Priya Shah has a balance of $1,500.00, due Sept 5.', citation: 'From: Invoice #1042' }));
+  });
+  appendThread(picker);
+}
+
+/* ---------- Journey 4 : Something's wrong ---------- */
+const J4_QUESTION = 'hey so I noticed Priya still hasn\'t paid her invoice and it\'s been like 2 weeks now, do you know what\'s going on with that?';
+async function j4_main(token) {
+  resetShell(); renderDashboardHost(); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble(J4_QUESTION));
+  await t(900); if (cancelled(token)) return;
+  const th = thinkingRow('Checking Priya Shah\'s invoice…'); appendThread(th);
+  await t(1800); if (cancelled(token)) return;
+  th.remove();
+  appendThread(aiCardTitleQA({ title: 'Here\'s what we found', question: 'Why hasn\'t Priya paid yet?', answer: 'Invoice INV-1042 is still in Draft, never finalized or sent. Automatic payment reminders are turned off.' }));
+  await t(500); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'Want me to finalize the invoice and turn on payment reminders?' });
+  appendThread(info);
+  ctaGroup(info, [
+    { label: 'Show me', kind: 'primary', onClick: () => showToast({ message: '→ continues into Journey 6, Flow A (Show)' }) },
+    { label: 'Do it for me', kind: 'secondary', onClick: () => showToast({ message: '→ continues into Journey 6, Flow B (Do)' }) },
+  ]);
+}
+async function j4_inconclusive(token) {
+  resetShell(); renderDashboardHost(); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble(J4_QUESTION));
+  await t(900); if (cancelled(token)) return;
+  const th = thinkingRow('Checking Priya Shah\'s invoice…'); appendThread(th);
+  await t(1800); if (cancelled(token)) return;
+  th.remove();
+  appendThread(aiCardTitleQA({ title: 'Here\'s what we found', question: 'Why hasn\'t Priya paid yet?', answer: 'I checked the invoice, payment history, and reminder settings. Everything looks correctly configured on our end. I couldn\'t find a clear reason for the delay.' }));
+  await t(500); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'Want me to connect you with a person who might have more context?' });
+  appendThread(info);
+  ctaGroup(info, [{ label: 'Talk to a person', kind: 'primary', onClick: () => showToast({ message: 'Connecting you now…' }) }]);
+}
+async function j4_needsperson(token) {
+  resetShell(); renderDashboardHost(); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble(J4_QUESTION));
+  await t(900); if (cancelled(token)) return;
+  const th = thinkingRow('Checking Priya Shah\'s invoice…'); appendThread(th);
+  await t(1800); if (cancelled(token)) return;
+  th.remove();
+  appendThread(aiCardTitleQA({ title: 'Here\'s what we found', question: 'Why hasn\'t Priya paid yet?', answer: 'Invoice INV-1042 was flagged and put on hold for manual review. That happens automatically above a certain amount. I\'m not able to release a hold myself.' }));
+  await t(500); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'This needs someone on your finance team to release it. Want me to connect you with a person?' });
+  appendThread(info);
+  ctaGroup(info, [{ label: 'Talk to a person', kind: 'primary', onClick: () => showToast({ message: 'Connecting you now…' }) }]);
+}
+
+/* ---------- Journey 5 : Teach me this feature ---------- */
+function guideStepsData() {
+  return [
+    { label: 'Your dashboard at a glance', key: 'stats', title: 'Your dashboard at a glance', text: 'Track what needs your attention today: open, in progress, and completed, all in one place.' },
+    { label: 'Everything recent, in one list', key: 'recent', title: 'Everything recent, in one list', text: 'See what\'s changed lately without digging. Newest activity always shows up here first.' },
+    { label: 'Where to find help', key: 'help', title: 'You\'re set', text: 'That\'s the basics. Come back to this help panel any time you need a hand.' },
+  ];
+}
+async function j5_curated(token) {
+  resetShell(); renderDashboardHost();
+  panelBody.innerHTML = '';
+  panelBody.appendChild(resourceCard({ icon: ICON.tour, title: 'Product guide', meta: 'Guide · 2 min' }));
+  panelBody.lastElementChild.style.cursor = 'pointer';
+  panelBody.lastElementChild.addEventListener('click', () => startGuide(token), { once: true });
+  await t(1000); if (cancelled(token)) return;
+  if (!cancelled(token)) await startGuide(token);
+}
+async function startGuide(token) {
+  setPanelOpen(false);
+  updateStatusBar({ title: 'Dashboard basics', action: 'Finding the right place to start…' });
+  await t(1000); if (cancelled(token)) return;
+  const steps = guideStepsData();
+  for (let i = 0; i < steps.length; i++) {
+    if (cancelled(token)) return;
+    const s = steps[i];
+    if (s.key === 'help') showHelpBtn();
+    moveCursorTo(s.key);
+    showSpotlight(s.key);
+    updateStatusBar({ title: 'Dashboard basics', stepCount: `Step ${i + 1} of 3`, action: s.label });
+    await t(400); if (cancelled(token)) return;
+    showTooltip(s.key, { dotIndex: i, dotCount: 3, title: s.title, text: s.text, showSkip: i < steps.length - 1 });
+    const clicked = await Promise.race([waitForClick(tooltipNext), t(4200).then(() => 'auto')]);
+    if (cancelled(token)) return;
+    hideTooltip();
+    if (i < steps.length - 1) {
+      await t(200); if (cancelled(token)) return;
+      hideSpotlight();
+      updateStatusBar({ title: 'Dashboard basics', stepCount: `Step ${i + 2} of 3`, action: `Heading to ${steps[i + 1].label.toLowerCase()}…` });
+      await t(750); if (cancelled(token)) return;
+    }
+  }
+  hideSpotlight(); hideTooltip(); hideStatusBar();
+  await t(300); if (cancelled(token)) return;
+  showToast({ message: 'Guide completed.', link: 'Open help panel' });
+  currentOnLauncherClick = () => {
+    setPanelOpen(true);
+    panelBody.innerHTML = '';
+    panelBody.appendChild(resourceCard({ icon: ICON.tour, title: 'Product guide', meta: 'Completed Guide', completed: true }));
+  };
+}
+async function j5_exploratory(token) {
+  resetShell(); renderDashboardHost(); setPanelOpen(false);
+  updateStatusBar({ title: 'Exploring your dashboard', action: 'Checking what\'s on your dashboard' });
+  currentOnLauncherClick = () => statusBar.scrollIntoView();
+  chevronHandler = () => {
+    const nowExpanding = !statusBar.classList.contains('expanded');
+    statusBar.classList.toggle('expanded', nowExpanding);
+    if (nowExpanding) {
+      updateStatusBar({ title: 'Exploring your dashboard', action: 'Paused. Ask me anything, I\'ll pick up where we left off.', paused: true, steps: [] });
+      sbSteps.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;">Nothing curated to list here. Exploratory guides narrate instead.</div>';
+      sbInput.placeholder = 'Or type what you need...';
+    } else {
+      updateStatusBar({ title: 'Exploring your dashboard', action: 'Checking what\'s on your dashboard', paused: false });
+    }
+  };
+}
+async function j5_pauseontype(token) {
+  resetShell(); renderDashboardHost(); setPanelOpen(false);
+  const steps = guideStepsData();
+  moveCursorTo('recent'); showSpotlight('recent');
+  showTooltip('recent', { dotIndex: 1, dotCount: 3, title: steps[1].title, text: steps[1].text, showSkip: true });
+  updateStatusBar({ title: 'Dashboard basics', stepCount: 'Step 2 of 3', action: steps[1].label });
+  await t(1200); if (cancelled(token)) return;
+  statusBar.classList.add('expanded');
+  updateStatusBar({
+    title: 'Dashboard basics', stepCount: 'Step 2 of 3', action: 'Paused. Ask me anything.', paused: true,
+    steps: [{ label: steps[0].label, state: 'done' }, { label: steps[1].label, state: 'active' }, { label: steps[2].label, state: 'upcoming' }],
+  });
+  await t(900); if (cancelled(token)) return;
+  sbInput.removeAttribute('readonly'); sbInput.focus();
+  await typeInto(sbInput, 'wait, why is item two still showing as sent?');
+  if (cancelled(token)) return;
+  await t(900); if (cancelled(token)) return;
+  hideSpotlight(); hideTooltip(); hideStatusBar();
+  const q = sbInput.value; sbInput.value = '';
+  setPanelOpen(true);
+  clearThread();
+  appendThread(userBubble(q));
+  await t(700); if (cancelled(token)) return;
+  appendThread(thinkingRow('Let me check on that…'));
+}
+async function j5_reopenmidguide(token) {
+  resetShell(); renderDashboardHost();
+  const steps = guideStepsData();
+  const stepRows = [{ label: steps[0].label, state: 'done' }, { label: steps[1].label, state: 'active' }, { label: steps[2].label, state: 'upcoming' }];
+  panelBody.innerHTML = '';
+  panelBody.appendChild(guideCard({
+    status: 'paused', title: 'Product guide', tag: 'Paused',
+    narration: 'Paused. Ask me anything, I\'ll pick up where we left off.',
+    steps: stepRows, buttons: [{ label: 'Resume', icon: ICON.play, onClick: () => showToast({ message: 'Resuming guide…' }) }],
+  }));
+  const toggle = el(`<div style="margin-top:8px;"><button class="cta-group secondary" style="font-family:var(--font-mono);font-size:10px;padding:6px 10px;border:1px solid var(--border);border-radius:5px;background:var(--surface);cursor:pointer;">Show exploratory version instead →</button></div>`);
+  const btn = toggle.querySelector('button');
+  btn.addEventListener('click', () => {
+    panelBody.innerHTML = '';
+    panelBody.appendChild(guideCard({
+      status: 'paused', title: 'Exploring your dashboard', tag: 'Paused',
+      narration: 'Paused. I\'d checked your stats and was looking at recent activity. Ask me anything, or resume to keep going.',
+      steps: [], buttons: [{ label: 'Resume', icon: ICON.play, onClick: () => showToast({ message: 'Resuming exploration…' }) }],
+    }));
+  });
+  panelBody.appendChild(toggle);
+}
+async function j5_stopped(token) {
+  resetShell(); renderDashboardHost(); setPanelOpen(false);
+  showToast({ message: 'Guide stopped. You can restart it any time.', link: 'Open help panel', ms: 0 });
+}
+async function j5_failed(token) {
+  resetShell(); renderDashboardHost(); setPanelOpen(false);
+  showActionToast({ status: 'denied', title: 'Couldn\'t find that on the page', detail: 'The guide stopped.', link: 'Open help panel' });
+}
+
+/* ---------- Journey 6 : Show me / do this for me ---------- */
+async function j6_flowA(token) {
+  resetShell(); renderInvoiceHost({}); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('add a note to Priya\'s invoice'));
+  await t(700); if (cancelled(token)) return;
+  appendThread(resolvedSelection('Which invoice would you like to add a note to?', 'Priya Shah\'s invoice'));
+  appendThread(userBubble('Priya Shah\'s invoice'));
+  await t(700); if (cancelled(token)) return;
+  const th = thinkingRow('Finding the right place for that…'); appendThread(th);
+  await t(1400); if (cancelled(token)) return;
+  th.remove();
+  appendThread(agentText('Found it. We\'ll take you to Priya Shah\'s invoice now.'));
+  await t(400); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'You\'re in the invoice editor. Want to add a personal note together?' });
+  appendThread(info);
+  ctaGroup(info, [
+    { label: 'Show me', kind: 'primary', onClick: () => flowAWalkthrough(token) },
+    { label: 'Not now', kind: 'secondary', onClick: () => appendThread(agentText('No problem, I\'m here if you\'d like help with this later.')) },
+  ]);
+}
+async function flowAWalkthrough(token) {
+  setPanelOpen(false);
+  renderInvoiceHost({ noteText: 'Thanks so much for your business, Priya! Let us know if you need anything else.' });
+  await t(300); if (cancelled(token)) return;
+  moveCursorTo('note'); showSpotlight('note');
+  showTooltip('note', { dotIndex: 0, dotCount: 1, title: 'Add a personal note', text: 'Here\'s a draft note for Priya. Feel free to edit it, then save it yourself when you\'re ready.', showSkip: false });
+  tooltipNext.textContent = 'Continue';
+  updateStatusBar({ title: 'Editing Priya\'s invoice', action: 'Note drafted, review & save.' });
+  await waitForClick(tooltipNext);
+  if (cancelled(token)) return;
+  tooltipNext.textContent = 'Next';
+  hideTooltip(); hideSpotlight(); hideStatusBar();
+  renderInvoiceHost({ noteText: 'Thanks for your business, Priya!' });
+  await t(300); if (cancelled(token)) return;
+  showToast({ message: 'Note added to Priya Shah\'s invoice.', link: 'Open help panel' });
+}
+async function j6_flowB(token) {
+  resetShell(); renderInvoiceHost({}); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('edit my invoice'));
+  await t(700); if (cancelled(token)) return;
+  appendThread(resolvedSelection('Which invoice would you like to edit?', 'Priya Shah\'s invoice'));
+  appendThread(userBubble('Priya Shah\'s invoice'));
+  await t(700); if (cancelled(token)) return;
+  const th = thinkingRow('Checking your current page…'); appendThread(th);
+  await t(1300); if (cancelled(token)) return;
+  th.remove();
+  appendThread(agentText('You\'re already on Priya Shah\'s invoice.'));
+  await t(400); if (cancelled(token)) return;
+  const list = actionListCard('What would you like to do?', ['Add a discount', 'Add a line item', 'Change due date', 'Take a full walkthrough'], async (choice) => {
+    list.remove();
+    appendThread(resolvedSelection('What would you like to do?', choice));
+    appendThread(userBubble(choice));
+    if (choice === 'Add a discount') { await t(700); if (!cancelled(token)) await flowBDiscount(token); }
+    else { showToast({ message: `→ "${choice}" flow not built in this pass` }); }
+  });
+  appendThread(list);
+}
+async function flowBDiscount(token) {
+  await t(300); if (cancelled(token)) return;
+  appendThread(agentText('How much of a discount would you like to apply?'));
+  await t(800); if (cancelled(token)) return;
+  composerInput.removeAttribute('readonly'); composerInput.focus();
+  await typeInto(composerInput, '10%');
+  if (cancelled(token)) return;
+  await t(500); if (cancelled(token)) return;
+  composerInput.value = ''; composerInput.setAttribute('readonly', '');
+  appendThread(resolvedSelection('How much of a discount would you like to apply?', '10%'));
+  appendThread(userBubble('10%'));
+  await t(700); if (cancelled(token)) return;
+  setPanelOpen(false);
+  renderInvoiceHost({});
+  moveCursorTo('discount'); showSpotlight('discount');
+  updateStatusBar({ title: 'Editing Priya\'s invoice', stepCount: 'Step 2 of 3', action: 'Pointing at the discount field' });
+  await t(1500); if (cancelled(token)) return;
+  hideStatusBar();
+  setPanelOpen(true);
+  const gc = guideCard({
+    status: 'running', title: 'Editing Priya Shah\'s invoice', tag: 'Step 3 of 3',
+    narration: 'Now: ready to apply the discount, needs your approval.',
+    steps: [{ label: 'Opened the invoice', state: 'done' }, { label: 'Pointing at the discount field', state: 'done' }, { label: 'Confirm and apply', state: 'active' }],
+    buttons: [{ label: 'Pause', icon: ICON.pause, onClick: () => showToast({ message: 'Paused.' }) }],
+  });
+  appendThread(gc);
+  const cc = confirmationCard('Apply a 10% discount to Priya Shah\'s invoice?', [['Discount', '10%'], ['Original total', '$1,500.00'], ['New total', '$1,350.00']]);
+  appendThread(cc);
+  ctaGroup(cc, [
+    { label: 'Apply discount', kind: 'primary', onClick: () => flowBExecute(token, gc) },
+    { label: 'Cancel', kind: 'secondary', onClick: () => flowBCancelled(token, gc) },
+  ]);
+}
+async function flowBExecute(token, gc) {
+  gc.querySelector('.gc-narration').textContent = 'Now: applying the discount…';
+  renderInvoiceHost({ discountApplied: true });
+  await t(1400); if (cancelled(token)) return;
+  gc.querySelectorAll('.gc-step')[2].classList.remove('active'); gc.querySelectorAll('.gc-step')[2].classList.add('done');
+  gc.querySelectorAll('.gc-step')[2].querySelector('span').innerHTML = ICON.check;
+  gc.querySelectorAll('.gc-step')[2].querySelector('span').style.color = 'var(--success)';
+  gc.querySelector('.gc-narration').textContent = 'Now: done, discount applied.';
+  const btnRow = gc.querySelector('.gc-btn-row'); if (btnRow) btnRow.remove();
+  await t(400); if (cancelled(token)) return;
+  appendThread(aiCardInfo({ text: 'Applied a 10% discount. Priya Shah\'s invoice now totals $1,350.00.' }));
+}
+async function flowBCancelled(token, gc) {
+  const steps = gc.querySelectorAll('.gc-step');
+  gc.classList.add('failed');
+  gc.querySelector('.gc-tag').textContent = 'Cancelled';
+  gc.querySelector('.gc-title-left span:last-child').textContent = 'Editing Priya Shah\'s invoice';
+  gc.querySelector('.gc-narration').textContent = 'Cancelled. No changes were made.';
+  steps[1].querySelector('span').innerHTML = ICON.x; steps[1].querySelector('span').style.color = 'var(--error)';
+  steps[2].querySelector('span').innerHTML = ICON.circleOutline;
+  const btnRow = gc.querySelector('.gc-btn-row'); if (btnRow) btnRow.remove();
+  await t(400); if (cancelled(token)) return;
+  appendThread(agentText('No problem, I haven\'t made any changes.'));
+}
+async function j6_cancelledOrFailed(token, mode) {
+  resetShell(); renderInvoiceHost({}); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('edit my invoice'));
+  appendThread(resolvedSelection('Which invoice would you like to edit?', 'Priya Shah\'s invoice'));
+  appendThread(userBubble('Priya Shah\'s invoice'));
+  appendThread(agentText('Found it. We\'ll take you to Priya Shah\'s invoice now.'));
+  await t(600); if (cancelled(token)) return;
+  if (mode === 'cancelled') {
+    appendThread(guideCard({
+      status: 'cancelled', title: 'Editing Priya Shah\'s invoice', tag: 'Cancelled', narration: 'Cancelled. No changes were made.',
+      steps: [{ label: 'Opened the invoice', state: 'done' }, { label: 'Pointing at the discount field', state: 'x' }, { label: 'Confirm and apply', state: 'upcoming' }],
+    }));
+    await t(400); appendThread(agentText('No problem, I haven\'t made any changes.'));
+  } else {
+    appendThread(guideCard({
+      status: 'failed', title: 'Editing Priya Shah\'s invoice', tag: 'Failed', narration: 'Couldn\'t apply the discount: connection issue.',
+      steps: [{ label: 'Opened the invoice', state: 'done' }, { label: 'Pointing at the discount field', state: 'done' }, { label: 'Confirm and apply', state: 'x' }],
+    }));
+    await t(400); if (cancelled(token)) return;
+    const info = aiCardInfo({ text: 'Want me to try applying the discount again?' });
+    appendThread(info);
+    ctaGroup(info, [
+      { label: 'Retry', kind: 'primary', onClick: () => showToast({ message: 'Retrying…' }) },
+      { label: 'Not now', kind: 'secondary', onClick: () => {} },
+    ]);
+  }
+}
+async function j6_navigating(token) {
+  resetShell(); renderDashboardHost(); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('edit my invoice'));
+  appendThread(resolvedSelection('Which invoice would you like to edit?', 'Priya Shah\'s invoice'));
+  appendThread(userBubble('Priya Shah\'s invoice'));
+  await t(600); if (cancelled(token)) return;
+  const th = thinkingRow('Finding the right place for that…'); appendThread(th);
+  await t(1600); if (cancelled(token)) return;
+  th.remove();
+  renderInvoiceHost({});
+  await t(200); if (cancelled(token)) return;
+  appendThread(agentText('Found it. We\'ll take you to Priya Shah\'s invoice now.'));
+  await t(400); if (cancelled(token)) return;
+  appendThread(actionListCard('What would you like to do?', ['Add a discount', 'Add a line item', 'Change due date', 'Take a full walkthrough'], () => showToast({ message: '→ continues as in Flow B' })));
+}
+async function j6_notnow(token) {
+  resetShell(); renderInvoiceHost({}); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('add a note to Priya\'s invoice'));
+  appendThread(resolvedSelection('Which invoice would you like to add a note to?', 'Priya Shah\'s invoice'));
+  appendThread(userBubble('Priya Shah\'s invoice'));
+  appendThread(agentText('Found it. We\'ll take you to Priya Shah\'s invoice now.'));
+  await t(600); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'You\'re in the invoice editor. Want to add a personal note together?' });
+  appendThread(info);
+  const grp = ctaGroup(info, [{ label: 'Show me', kind: 'primary', onClick: () => {} }, { label: 'Not now', kind: 'secondary', onClick: () => {} }]);
+  grp.querySelectorAll('button').forEach((b) => b.disabled = true);
+  await t(400); if (cancelled(token)) return;
+  appendThread(agentText('No problem, I\'m here if you\'d like help with this later.'));
+}
+async function j6_blocked(token) {
+  resetShell(); renderInvoiceHost({}); composerInput.placeholder = 'Ask a follow-up...';
+  appendThread(userBubble('Can you apply a 15% discount to Priya Shah\'s invoice?'));
+  await t(800); if (cancelled(token)) return;
+  const info = aiCardInfo({ text: 'I\'m not able to make that change here. Discounts on invoices aren\'t something I can do for you directly.' });
+  appendThread(info);
+  ctaGroup(info, [{ label: 'Talk to a person', kind: 'primary', onClick: () => showToast({ message: 'Connecting you now…' }) }]);
+}
+async function j6_flowAfailed(token) {
+  resetShell(); renderInvoiceHost({ noteText: 'Thanks so much for your business, Priya! Let us know if you need anything else.' });
+  setPanelOpen(false);
+  showActionToast({ status: 'denied', title: 'Couldn\'t find that field', detail: 'The walkthrough stopped.', link: 'Open help panel' });
+}
+
+/* ==================================================================
+   JOURNEY / SCENARIO REGISTRY
+   ================================================================== */
+const JOURNEYS = {
+  '1': {
+    label: '1 · I\'m just browsing',
+    scenarios: {
+      main: { label: 'Main: search & filter', desc: 'User types, resource list live-filters, no-match hint appears.', run: j1_main },
+      empty: { label: 'Side flow: no resources configured', desc: 'Admin never set anything up.', run: j1_empty },
+    },
+  },
+  '2': {
+    label: '2 · I have a question',
+    scenarios: {
+      main: { label: 'Main: Answer with citation', desc: 'Question → Thinking → cited answer → Show me offer.', run: j2_main },
+      noconfident: { label: 'Side flow: no confident answer', desc: 'AI declines rather than guess.', run: j2_noconfident },
+      disambiguation: { label: 'Side flow: needs disambiguation', desc: 'Which invoice? clarify first.', run: j2_disambiguation },
+    },
+  },
+  '4': {
+    label: '4 · Something\'s wrong',
+    scenarios: {
+      main: { label: 'Main: diagnose & propose fix', desc: 'Investigates, finds cause, offers Show me / Do it for me.', run: j4_main },
+      inconclusive: { label: 'Side flow: inconclusive', desc: 'AI genuinely doesn\'t know why.', run: j4_inconclusive },
+      needsperson: { label: 'Side flow: fix needs a person', desc: 'Cause known, can\'t act on it.', run: j4_needsperson },
+    },
+  },
+  '5': {
+    label: '5 · Teach me this feature',
+    scenarios: {
+      curated: { label: 'Curated guide (3 steps)', desc: 'Click resource → spotlight+tooltip walkthrough → complete.', run: j5_curated },
+      exploratory: { label: 'Exploratory guide', desc: 'No fixed steps, expand for narrative pause.', run: j5_exploratory },
+      pauseontype: { label: 'Side flow: pause on type', desc: 'Typing mid-run pauses & interrupts the guide.', run: j5_pauseontype },
+      reopen: { label: 'Side flow: reopen mid-guide', desc: 'Curated vs. exploratory pause card, side by side.', run: j5_reopenmidguide },
+      stopped: { label: 'Side flow: user stops guide', desc: 'Calm, neutral end toast.', run: j5_stopped },
+      failed: { label: 'Side flow: target element missing', desc: 'Error toast, guide can\'t recover.', run: j5_failed },
+    },
+  },
+  '6': {
+    label: '6 · Show me / do this for me',
+    scenarios: {
+      flowA: { label: 'Flow A: Show (add a note)', desc: 'Walkthrough pauses for the user\'s own action.', run: j6_flowA },
+      flowB: { label: 'Flow B: Do (apply a discount)', desc: 'Full confirm-gated autonomous execution.', run: j6_flowB },
+      cancelled: { label: 'Side flow, confirm gate: cancelled', desc: 'User declines at Confirm.', run: (t) => j6_cancelledOrFailed(t, 'cancelled') },
+      failed: { label: 'Side flow, confirm gate: failed', desc: 'Execution error, offers Retry.', run: (t) => j6_cancelledOrFailed(t, 'failed') },
+      navigating: { label: 'Side flow: not already on page', desc: 'Host page visibly navigates first.', run: j6_navigating },
+      notnow: { label: 'Side flow: declines the offer', desc: '"Not now": lightweight decline.', run: j6_notnow },
+      blocked: { label: 'Side flow: action blocked by admin', desc: 'AI declines immediately, no attempt.', run: j6_blocked },
+      flowAfailed: { label: 'Side flow: Flow A target missing', desc: 'Error toast mid-walkthrough.', run: j6_flowAfailed },
+    },
+  },
+};
+
+/* ---------------- Picker wiring ---------------- */
+function populateJourneySelect() {
+  journeySelect.innerHTML = Object.entries(JOURNEYS).map(([k, j]) => `<option value="${k}">${j.label}</option>`).join('');
+}
+function populateScenarioSelect(journeyKey) {
+  const j = JOURNEYS[journeyKey];
+  scenarioSelect.innerHTML = Object.entries(j.scenarios).map(([k, s]) => `<option value="${k}">${s.label}</option>`).join('');
+}
+function runCurrent() {
+  runToken = newRunToken();
+  const j = JOURNEYS[journeySelect.value];
+  const s = j.scenarios[scenarioSelect.value];
+  scenarioDesc.textContent = s.desc;
+  s.run(runToken);
+}
+function onJourneyChange() {
+  populateScenarioSelect(journeySelect.value);
+  runCurrent();
+}
+journeySelect.addEventListener('change', onJourneyChange);
+scenarioSelect.addEventListener('change', runCurrent);
+replayBtn.addEventListener('click', runCurrent);
+
+/* ---------------- Init ---------------- */
+populateJourneySelect();
+journeySelect.value = '6';
+populateScenarioSelect(journeySelect.value);
+scenarioSelect.value = 'flowB';
+runCurrent();
+
+</script>
+</body>
+</html>

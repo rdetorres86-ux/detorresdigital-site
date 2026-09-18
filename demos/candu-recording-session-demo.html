@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candu Recording Session — Interactive Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple:#5911E1;
+    --purple-soft:#F1EBFD;
+    --teal:#53C6C1;
+    --navy:#5911E1;
+    --dark:#15141F;
+    --ink:#1B1B23;
+    --ink-soft:#5B5B66;
+    --ink-faint:#9494A0;
+    --line:#E3E1E8;
+    --bg:#F4F3F7;
+    --orange:#FCAD0D;
+    --editor-bar:#15141F;
+    --editor-rail:#1D1C29;
+    --green:#0E9F6E;
+  }
+  * { box-sizing:border-box; }
+  html,body{ margin:0; height:100%; background:#EDEBF2; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color:var(--ink); }
+  img{ max-width:100%; display:block; }
+  svg{ width:1em; height:1em; display:inline-block; vertical-align:middle; flex-shrink:0; }
+
+  /* ---------- Top control bar ---------- */
+  .demo-toolbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#14071F; color:#fff; padding:9px 14px; font-size:12px;
+  }
+  .demo-toolbar .brand{ font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-size:11px; color:#C9B8F0; white-space:nowrap; }
+  .demo-toolbar select{
+    background:#241033; color:#fff; border:1px solid #3D2354; border-radius:6px;
+    padding:6px 8px; font-size:12px; font-family:inherit;
+  }
+  .demo-toolbar button{
+    background:#241033; color:#fff; border:1px solid #3D2354; border-radius:6px;
+    padding:6px 10px; font-size:12px; font-family:inherit; cursor:pointer;
+  }
+  .demo-toolbar button:hover{ background:#331547; }
+  .demo-toolbar button.primary{ background:var(--purple); border-color:var(--purple); }
+  .demo-toolbar button.primary:hover{ background:#5209c9; }
+  .demo-toolbar .spacer{ flex:1; }
+  .demo-toolbar .hint{ color:#9C8CBF; font-size:11.5px; }
+
+  /* ---------- Stage frame ---------- */
+  .stage-viewport{ padding:18px; overflow-x:auto; }
+  .browser-frame{
+    max-width:1040px; min-width:900px; margin:0 auto; background:#fff; border-radius:10px; overflow:hidden;
+    box-shadow:0 20px 50px -30px rgba(20,7,31,.5); border:1px solid #DDD9E5;
+  }
+  .browser-chrome{
+    display:flex; align-items:center; gap:10px; background:#EDEBF1; padding:9px 14px; border-bottom:1px solid #DDD9E5;
+  }
+  .browser-dots{ display:flex; gap:6px; }
+  .browser-dots span{ width:10px; height:10px; border-radius:50%; display:block; }
+  .browser-dots span:nth-child(1){ background:#FF5F57; }
+  .browser-dots span:nth-child(2){ background:#FEBC2E; }
+  .browser-dots span:nth-child(3){ background:#28C840; }
+  .browser-tab{
+    background:#fff; border-radius:6px 6px 0 0; padding:5px 12px; font-size:11.5px; color:var(--ink-soft);
+    display:flex; align-items:center; gap:6px; border:1px solid #DDD9E5; border-bottom:none;
+  }
+  .browser-tab.active{ color:var(--ink); font-weight:600; }
+  .browser-tab .dot{ width:6px; height:6px; border-radius:50%; background:var(--orange); }
+  .browser-url{ flex:1; }
+  .browser-url-inner{
+    background:#fff; border:1px solid #DDD9E5; border-radius:999px; padding:4px 12px; font-size:11px; color:var(--ink-faint);
+    max-width:260px; text-align:center;
+  }
+
+  /* ---------- Proxima app content ---------- */
+  .proxima{ position:relative; min-height:560px; background:#fff; }
+  .fake-cursor{
+    position:absolute; width:22px; height:22px; z-index:40; pointer-events:none;
+    transition:left .65s cubic-bezier(.4,0,.2,1), top .65s cubic-bezier(.4,0,.2,1), opacity .3s;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)); opacity:0;
+  }
+  .fake-cursor svg{ width:100%; height:100%; }
+  .fake-cursor.visible{ opacity:1; }
+  .click-ripple{
+    position:absolute; width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%;
+    background:rgba(89,17,225,.35); border:1.5px solid var(--purple); z-index:39; pointer-events:none;
+    animation:rippleOut .55s ease-out forwards;
+  }
+  @keyframes rippleOut{
+    0%{ transform:scale(.3); opacity:1; }
+    100%{ transform:scale(2.4); opacity:0; }
+  }
+  .proxima-topbar{
+    display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:1px solid var(--line);
+  }
+  .proxima-logo{ font-size:20px; font-weight:800; color:var(--orange); letter-spacing:-0.02em; }
+  .proxima-actions{ display:flex; gap:10px; }
+  .proxima-actions .btn-dark{
+    background:#14121A; color:#fff; border-radius:7px; padding:7px 12px; font-size:12.5px; font-weight:600;
+    display:flex; align-items:center; gap:6px;
+  }
+  .proxima-actions .btn-outline{
+    border:1px solid var(--line); border-radius:7px; padding:7px 12px; font-size:12.5px; font-weight:600; color:var(--ink);
+  }
+  .proxima-body{ display:flex; }
+  .proxima-nav{ width:150px; padding:18px 12px; border-right:1px solid var(--line); flex-shrink:0; }
+  .proxima-nav a{
+    display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:7px; font-size:13px; font-weight:600;
+    color:var(--ink-soft); margin-bottom:2px;
+  }
+  .proxima-nav a.active{ color:var(--ink); background:#F6F5FA; }
+  .proxima-main{ flex:1; padding:22px; min-width:0; }
+
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:16px; }
+  .card h3{ margin:0 0 2px; font-size:17px; }
+  .card .muted{ color:var(--ink-faint); font-size:12px; margin-bottom:12px; }
+  .stat-row{ display:flex; gap:28px; flex-wrap:wrap; }
+  .stat{ min-width:70px; }
+  .stat b{ display:block; font-size:24px; color:var(--orange); }
+  .stat b.plain{ color:var(--ink); }
+  .stat span{ font-size:11.5px; color:var(--ink-soft); }
+
+  .app-tabs{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .app-tabs .tabs-left{ display:flex; align-items:center; gap:8px; }
+  .app-tabs .brandmini{ font-weight:800; color:var(--orange); font-size:14px; margin-right:6px; }
+  .app-tabs .tab-pill{ font-size:12px; font-weight:600; padding:5px 10px; border-radius:6px; color:var(--ink-soft); }
+  .app-tabs .tab-pill.active{ background:#14121A; color:#fff; }
+  .app-tabs .try{ font-size:12px; color:var(--ink-faint); }
+
+  .two-col{ display:flex; gap:16px; align-items:flex-start; }
+  .two-col .col-main{ flex:1; }
+  .field-row{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .field{
+    border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:13px; color:var(--ink-faint);
+    background:#fff; flex:1; min-width:120px;
+  }
+  .field.highlight{ border-color:var(--purple); box-shadow:0 0 0 3px var(--purple-soft); position:relative; color:var(--ink); }
+  .btn-mini-dark{ background:#14121A; color:#fff; border-radius:7px; padding:9px 14px; font-size:12.5px; font-weight:600; }
+  .btn-mini-outline{ border:1px solid var(--line); border-radius:7px; padding:9px 14px; font-size:12.5px; font-weight:600; }
+  .team-list div{ font-size:13px; margin-bottom:6px; color:var(--ink-soft); }
+  .team-list b{ color:var(--ink); font-weight:600; }
+
+  .callout-tip{
+    position:absolute; background:linear-gradient(135deg,#5F21E7,#4686F0); color:#fff; padding:14px 16px;
+    border-radius:10px; font-size:13px; font-weight:600; line-height:1.4; max-width:220px; box-shadow:0 12px 26px -12px rgba(95,33,231,.6);
+  }
+  .callout-tip::after{
+    content:''; position:absolute; left:-8px; top:24px; border:8px solid transparent; border-right-color:#5F21E7;
+  }
+
+  /* ---------- Bottom extension bar ---------- */
+  .ext-bar{
+    position:absolute; left:0; right:0; bottom:0; background:var(--purple); color:#fff;
+    display:flex; align-items:center; justify-content:space-between; padding:13px 20px; gap:14px; flex-wrap:wrap;
+  }
+  .ext-left{ display:flex; align-items:center; gap:10px; font-size:13px; }
+  .ext-right{ display:flex; align-items:center; gap:8px; }
+  .btn-primary{ background:var(--teal); color:#fff; border:none; border-radius:7px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary:hover{ filter:brightness(0.95); }
+  .btn-white{ background:#fff; color:var(--dark); border:none; border-radius:7px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:8px; }
+  .btn-white:hover{ background:#F1EFFA; }
+  .btn-dark2{ background:var(--dark); color:#fff; border:none; border-radius:7px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .btn-dark2:hover{ background:#26243a; }
+  .btn-ghost{ background:transparent; color:#fff; border:1px solid rgba(255,255,255,.35); border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-ghost:hover{ border-color:#fff; }
+  .btn-hide{ background:transparent; color:#fff; opacity:.85; border:none; font-size:12.5px; cursor:pointer; font-family:inherit; }
+
+  .countdown-badge{
+    position:absolute; top:44%; left:50%; transform:translate(-50%,-50%);
+    width:110px; height:110px; border-radius:50%; background:rgba(99,16,229,.08);
+    display:flex; align-items:center; justify-content:center; font-size:52px; font-weight:800; color:var(--purple);
+  }
+
+  .step-dots{ display:flex; gap:6px; }
+  .step-dot{
+    width:28px; height:28px; border-radius:7px; background:var(--teal);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .step-dot svg{ width:14px; height:14px; color:#fff; }
+  .collapse-btn{
+    width:26px; height:26px; border-radius:7px; background:rgba(255,255,255,.16); border:none; color:#fff;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:11px; flex-shrink:0;
+  }
+  .rec-pill{
+    display:flex; align-items:center; gap:7px; background:#fff; color:var(--ink); border-radius:6px; padding:7px 12px; font-size:12.5px; font-weight:700;
+    border:1.5px dashed #B9ADEA;
+  }
+  .rec-dot{ width:7px; height:7px; border-radius:50%; background:#E11D48; animation:pulse 1.2s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .success-pill{ display:flex; align-items:center; gap:7px; font-size:13.5px; font-weight:700; }
+  .success-pill svg{ width:16px; height:16px; color:#fff; flex-shrink:0; }
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:#14121A; color:#fff;
+    padding:10px 16px; border-radius:8px; font-size:12.5px; display:flex; gap:12px; align-items:center; opacity:0;
+    transition:opacity .2s, transform .2s; pointer-events:none; z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast button{ background:none; border:none; color:var(--teal); font-weight:700; font-size:12.5px; cursor:pointer; font-family:inherit; }
+
+  /* ---------- AI processing ---------- */
+  .processing-shell{ display:flex; min-height:560px; background:#fff; }
+  /* ---------- Shared editor chrome ---------- */
+  .editor-shell{ background:var(--bg); }
+  .editor-top{ background:var(--editor-bar); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:9px 14px; font-size:12.5px; }
+  .editor-top .left{ display:flex; align-items:center; gap:9px; }
+  .editor-top .left svg{ width:20px; height:20px; flex-shrink:0; }
+  .editor-top .backchev{ opacity:.55; font-size:15px; }
+  .editor-top .tourname{ font-weight:600; display:flex; align-items:center; gap:5px; white-space:nowrap; }
+  .editor-top .tourname .car{ opacity:.5; font-size:10px; }
+  .editor-top .center-icons{ display:flex; gap:6px; align-items:center; }
+  .editor-top .center-icons .ic{ width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#8B87A0; }
+  .editor-top .center-icons .ic svg{ width:16px; height:16px; }
+  .editor-top .center-icons .ic.active{ background:#fff; color:var(--dark); }
+  .editor-top .right{ display:flex; align-items:center; gap:10px; }
+  .avatar-circle{ width:24px; height:24px; border-radius:50%; background:#4B4763; color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .saved-status{ display:flex; align-items:center; gap:5px; font-size:12px; color:#B4AFCB; white-space:nowrap; }
+  .saved-status svg{ width:13px; height:13px; color:var(--teal); }
+  .btn-share{ border:1px solid rgba(255,255,255,.22); color:#fff; background:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:600; display:flex; gap:5px; align-items:center; white-space:nowrap; font-family:inherit; }
+  .btn-publish{ background:#000; color:#fff; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:6px 12px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; white-space:nowrap; font-family:inherit; cursor:pointer; }
+  .btn-publish svg{ width:12px; height:12px; }
+
+  .editor-body{ display:flex; }
+  .editor-rail{ width:60px; background:var(--editor-rail); display:flex; flex-direction:column; align-items:center; padding:14px 0; flex-shrink:0; }
+  .editor-rail .rail-logo{ width:20px; height:20px; margin-bottom:20px; color:#fff; }
+  .editor-rail .rail-group{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .editor-rail .rail-item{ display:flex; flex-direction:column; align-items:center; gap:5px; color:#77738F; }
+  .editor-rail .rail-item svg{ width:17px; height:17px; }
+  .editor-rail .rail-item span{ font-size:8px; font-weight:600; letter-spacing:.01em; }
+  .editor-rail .rail-spacer{ flex:1; }
+  .editor-rail .rail-bottom{ display:flex; flex-direction:column; align-items:center; gap:16px; padding-bottom:4px; }
+
+  .editor-canvas-wrap{ flex:1; padding:16px; min-width:0; display:flex; flex-direction:column; }
+  .editor-tabbar{ display:flex; align-items:center; gap:8px; }
+  .editor-tabbar .tab{ background:#fff; border:1px solid var(--line); border-bottom:none; border-radius:7px 7px 0 0; padding:7px 14px; font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; }
+  .editor-tabbar .tab .dot{ width:6px; height:6px; border-radius:50%; background:var(--purple); }
+  .editor-canvas{ background:#fff; border-radius:0 8px 8px 8px; border:1px solid var(--line); position:relative; overflow:hidden; flex:1; }
+
+  .tour-tooltip{ position:absolute; background:#fff; border:2px dashed var(--purple); border-radius:10px; padding:15px 17px; width:220px; }
+  .tour-tooltip .tag{ position:absolute; top:-13px; left:10px; background:var(--purple); color:#fff; font-size:10px; font-weight:700; padding:3px 9px; border-radius:5px; }
+  .tour-tooltip p{ margin:0; font-size:13px; font-weight:600; line-height:1.4; color:var(--ink); }
+
+  .editor-right{ width:300px; border-left:1px solid var(--line); background:#fff; flex-shrink:0; display:flex; flex-direction:column; }
+  .editor-right-head{ display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:9px 14px; border-bottom:1px solid var(--line); color:var(--ink-faint); }
+  .editor-right-head svg{ width:15px; height:15px; }
+  .editor-right-head .close-x{ font-size:11.5px; font-weight:600; }
+  .editor-tools{ display:flex; gap:6px; padding:9px 14px; border-bottom:1px solid var(--line); }
+  .editor-tools .t{ width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); }
+  .editor-tools .t svg{ width:15px; height:15px; }
+  .editor-tools .t.active{ background:var(--purple-soft); color:var(--purple); }
+  .chat-history-label{ display:flex; align-items:center; gap:6px; padding:11px 14px 4px; font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; }
+  .chat-body{ flex:1; overflow-y:auto; padding:2px 14px 8px; font-size:12.5px; color:var(--ink-soft); line-height:1.55; }
+  .chat-body .step-block{ margin-bottom:9px; }
+  .chat-body .step-block b{ display:block; color:var(--ink); font-size:12.5px; margin-bottom:2px; }
+  .chat-body code{ background:#F3F1F9; color:#7A3FE0; border-radius:4px; padding:1px 5px; font-size:10.5px; font-family:'SF Mono',Monaco,monospace; }
+  .chat-thinking{ display:flex; align-items:center; gap:8px; color:var(--ink-faint); font-size:12px; margin-top:10px; }
+  .chat-succeed{ display:flex; align-items:center; justify-content:space-between; background:#F0FBF6; border:1px solid #CDEEDF; border-radius:8px; padding:9px 12px; margin-top:10px; font-size:12.5px; font-weight:700; color:var(--green); }
+  .chat-succeed button{ background:none; border:none; color:var(--purple); font-weight:700; font-size:12px; cursor:pointer; font-family:inherit; }
+  .chat-input-wrap{ border-top:1px solid var(--line); padding:12px 14px; }
+  .chat-input-label{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; margin-bottom:8px; }
+  .beta-tag{ font-size:9px; font-weight:700; color:var(--teal); border:1px solid var(--teal); border-radius:999px; padding:1px 7px; }
+  .chat-textarea{ border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px; color:var(--ink-faint); min-height:50px; }
+
+  .floating-stepnav{
+    position:absolute; left:50%; bottom:8px; transform:translateX(-50%); background:#26243B; border-radius:14px; padding:8px 10px 8px 8px;
+    display:flex; align-items:center; gap:6px; box-shadow:0 14px 30px -12px rgba(20,10,40,.5); z-index:5;
+  }
+  .fsn-grip{ color:#6B6885; padding:0 2px; display:flex; align-items:center; }
+  .fsn-grip svg{ width:12px; height:16px; }
+  .fsn-step{ width:34px; height:34px; border-radius:9px; background:#3A3856; color:#B7B3D6; display:flex; align-items:center; justify-content:center; }
+  .fsn-step svg{ width:15px; height:15px; }
+  .fsn-step.active{ background:var(--teal); color:#0B3B3B; box-shadow:0 0 0 2px rgba(83,198,193,.35); }
+  .fsn-add{ display:flex; align-items:center; gap:5px; color:#9490B0; font-size:12px; font-weight:600; padding:0 8px; white-space:nowrap; }
+  .fsn-add svg{ width:12px; height:12px; }
+  .fsn-expand{ color:#6B6885; padding:0 4px; display:flex; align-items:center; border-left:1px solid #3A3856; margin-left:2px; padding-left:10px; }
+  .fsn-expand svg{ width:13px; height:13px; }
+  .editor-status-bar{ display:flex; align-items:center; justify-content:space-between; padding:8px 4px 0; font-size:11.5px; color:var(--ink-faint); }
+  .editor-status-bar .tourstep-tag{ font-weight:600; color:var(--ink-soft); }
+  .editor-status-bar .undoredo{ display:flex; gap:10px; }
+  .editor-status-bar .undoredo svg{ width:14px; height:14px; }
+
+  /* ---------- AI processing ---------- */
+  .processing-canvas{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; height:100%; }
+  .tip-illustration{ width:230px; height:150px; background:var(--purple-soft); border-radius:14px; margin-bottom:20px; display:flex; align-items:center; justify-content:center; }
+  .tip-illustration svg{ width:130px; height:95px; }
+  .processing-canvas h3{ margin:0 0 6px; font-size:18px; max-width:26ch; }
+  .processing-canvas p{ margin:0 0 14px; font-size:12.5px; color:var(--ink-soft); max-width:40ch; line-height:1.5; }
+  .tip-dots{ display:flex; gap:6px; align-items:center; justify-content:center; }
+  .tip-dots span{ width:6px; height:6px; border-radius:50%; background:var(--line); }
+  .tip-dots span.active{ background:var(--purple); }
+  .tip-next{ margin-top:14px; }
+  .spinner{ width:12px; height:12px; border-radius:50%; border:2px solid var(--purple-soft); border-top-color:var(--purple); animation:spin 0.8s linear infinite; flex-shrink:0; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  @media (max-width:760px){
+    .proxima-nav{ display:none; }
+    .editor-right{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-toolbar">
+  <span class="brand">Candu · Recording Session</span>
+  <select id="stageSelect"></select>
+  <button id="prevBtn">&larr; Prev</button>
+  <button id="nextBtn">Next &rarr;</button>
+  <button id="replayBtn" class="primary">&#8635; Replay stage</button>
+  <span class="spacer"></span>
+  <span class="hint" id="stageHint"></span>
+</div>
+
+<div class="stage-viewport" id="viewport"></div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const viewport = $('#viewport');
+const toastEl = $('#toast');
+const toastMsg = $('#toastMsg');
+let toastTimer;
+
+function showToast(msg, action){
+  toastMsg.textContent = msg;
+  const existing = toastEl.querySelector('button');
+  if (existing) existing.remove();
+  if (action) {
+    const b = document.createElement('button');
+    b.textContent = action.label;
+    b.onclick = action.onClick;
+    toastEl.appendChild(b);
+  }
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 4000);
+}
+
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><path d="M10 8.5L15 12L10 15.5V8.5Z" fill="currentColor"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.5L10.5 15L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_STOP = '<svg viewBox="0 0 24 24" fill="none"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>';
+const CANDU_MARK = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 7L16.5 15H7.5L12 7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+const ICON_CHEVDOWN = '<svg viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_PENCIL = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 20L4.7 16.6L15 6.3L17.7 9L7.4 19.3L4 20Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="12" r="2.4" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="6" r="2.4" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="18" r="2.4" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 10.8L14.8 7.2M8.2 13.2L14.8 16.8" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICON_CHART = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 19V10M12 19V5M19 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const ICON_GEAR = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M12 3V5.5M12 18.5V21M21 12H18.5M5.5 12H3M18 6L16.2 7.8M7.8 16.2L6 18M18 18L16.2 16.2M7.8 7.8L6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICON_LOCK = '<svg viewBox="0 0 24 24" fill="none"><rect x="5.5" y="10.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10.5V7.5C8 5 9.8 3.5 12 3.5C14.2 3.5 16 5 16 7.5V10.5" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICON_GRID = '<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6.5" height="6.5" rx="1.3" stroke="currentColor" stroke-width="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.3" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.3" stroke="currentColor" stroke-width="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.3" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICON_LAYERS = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3L21 8L12 13L3 8L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 13L12 18L21 13" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const ICON_FRAME = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 3V21M17 3V21M3 7H21M3 17H21" stroke="currentColor" stroke-width="1.5"/></svg>';
+const ICON_HISTORY = '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5V12L15 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICON_SHORTCUT = '<svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 15L10.5 12L7.5 9M12.5 15H16.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICON_LIGHTNING = '<svg viewBox="0 0 24 24" fill="none"><path d="M13 3L5 13.5H11L10.5 21L19 9.5H13L13 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const ICON_SPARKLE = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3L13.6 9.2L20 11L13.6 12.8L12 19L10.4 12.8L4 11L10.4 9.2L12 3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const ICON_SEND = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3L14 10L21 12L14 14L12 21L10 14L3 12L10 10L12 3Z" fill="currentColor"/></svg>';
+const ICON_CLOSE = '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const ICON_DESKTOP = '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.6"/><path d="M8 20H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+const ICON_TABLET = '<svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICON_MOBILE = '<svg viewBox="0 0 24 24" fill="none"><rect x="7" y="3" width="10" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/></svg>';
+const ICON_GRIP = '<svg viewBox="0 0 12 20" fill="currentColor"><circle cx="3" cy="3" r="1.5"/><circle cx="9" cy="3" r="1.5"/><circle cx="3" cy="10" r="1.5"/><circle cx="9" cy="10" r="1.5"/><circle cx="3" cy="17" r="1.5"/><circle cx="9" cy="17" r="1.5"/></svg>';
+const ICON_PLUS = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const ICON_EXPAND = '<svg viewBox="0 0 24 24" fill="none"><path d="M9 4H4V9M20 9V4H15M15 20H20V15M4 15V20H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_UNDO = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 8H15C17.8 8 20 10.2 20 13C20 15.8 17.8 18 15 18H10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10 4L6 8L10 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_REDO = '<svg viewBox="0 0 24 24" fill="none"><path d="M17 8H9C6.2 8 4 10.2 4 13C4 15.8 6.2 18 9 18H14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14 4L18 8L14 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_CURSOR = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 3L19 10.5L12.5 12L10 19L5 3Z" fill="#14121A" stroke="white" stroke-width="1.3" stroke-linejoin="round"/></svg>';
+
+/* ---------------- Proxima chrome helper ---------------- */
+function proximaTopbar(activeNav){
+  const items = [
+    {k:'home', label:'Home', icon:'△'},
+    {k:'campaigns', label:'Campaigns', icon:'✉'},
+    {k:'audience', label:'Audience', icon:'■'},
+    {k:'settings', label:'Settings', icon:'⚙'},
+  ];
+  return `
+  <div class="proxima-topbar">
+    <div class="proxima-logo">Proxi▲ma</div>
+    <div class="proxima-actions">
+      <span class="btn-dark">\u{1F3C6} Try premium</span>
+      <span class="btn-outline">Account</span>
+    </div>
+  </div>`;
+}
+function proximaNav(active){
+  const items = ['Home','Campaigns','Audience','Settings'];
+  return `<div class="proxima-nav">${items.map(i=>`<a class="${i===active?'active':''}">${i}</a>`).join('')}</div>`;
+}
+
+/* ---------------- Stage 1-4 shared: Proxima Home dashboard ---------------- */
+function proximaHomeBody(){
+  return `
+  <div class="proxima-main">
+    <div class="card">
+      <h3>Conversion</h3>
+      <div class="muted">Last 30 days</div>
+      <div class="stat-row">
+        <div class="stat"><b>879</b><span>Total conversions</span></div>
+        <div class="stat"><b>56%</b><span>Conversion rate</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Your Content</h3>
+      <div class="muted">Last 30 days</div>
+      <div class="stat-row">
+        <div class="stat"><b class="plain">20</b><span>Forms</span></div>
+        <div class="stat"><b class="plain">11</b><span>Flows</span></div>
+        <div class="stat"><b class="plain">26</b><span>Banners</span></div>
+        <div class="stat"><b class="plain">43</b><span>Checklists</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* Proxima Users page (recording target) */
+function proximaUsersBody(withTooltip){
+  return `
+  <div class="proxima-main">
+    <div class="app-tabs">
+      <div class="tabs-left">
+        <span class="brandmini">Proxi▲ma</span>
+        <span class="tab-pill">Home</span>
+        <span class="tab-pill active" id="animTargetTab">Users</span>
+      </div>
+      <span class="try">Try premium</span>
+    </div>
+    <div class="two-col">
+      <div class="col-main">
+        <div class="card" style="margin-bottom:12px;">
+          <h3 style="font-size:15px;">Your Content</h3>
+          <div class="stat-row">
+            <div class="stat"><b class="plain" style="font-size:18px;">20</b><span>Forms</span></div>
+            <div class="stat"><b class="plain" style="font-size:18px;">11</b><span>Flows</span></div>
+            <div class="stat"><b class="plain" style="font-size:18px;">26</b><span>Banners</span></div>
+            <div class="stat"><b class="plain" style="font-size:18px;">43</b><span>Checklists</span></div>
+          </div>
+        </div>
+        <div class="card" style="position:relative; margin-bottom:0;">
+          <h3 style="font-size:15px;">Invite a teammate</h3>
+          <div class="field-row">
+            <div class="field">Name</div>
+            <div class="field highlight" id="emailField">Email</div>
+          </div>
+          <div class="field-row">
+            <span class="btn-mini-dark" id="animTargetSend">Send invitation</span>
+            <span class="btn-mini-outline">Export CSV</span>
+          </div>
+          ${withTooltip ? `<div class="callout-tip" style="top:70px; left:250px;">Enter the teammate's email and click Invite.</div>` : ''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function browserFrame(innerHtml, tabDot){
+  return `
+  <div class="browser-frame">
+    <div class="browser-chrome">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-tab">Candu</div>
+      <div class="browser-tab active">${tabDot ? '<span class="dot"></span>' : ''}Proxima</div>
+      <div class="browser-url"><div class="browser-url-inner">proxima.com</div></div>
+    </div>
+    ${innerHtml}
+  </div>`;
+}
+
+/* ---------------- Stage renderers ---------------- */
+function renderIdle(){
+  return browserFrame(`
+    <div class="proxima">
+      ${proximaTopbar()}
+      <div class="proxima-body">${proximaNav('Home')}${proximaHomeBody()}</div>
+      <div class="ext-bar">
+        <div class="ext-left">Navigate to the page where you want the tour to start, then click Start.</div>
+        <div class="ext-right">
+          <button class="btn-hide">▾ Hide</button>
+          <button class="btn-primary" id="startBtn">${ICON_PLAY} Start Capture</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function renderCountdown(){
+  setTimeout(()=>{ if (state.stage===1) runCountdown(); }, 50);
+  return browserFrame(`
+    <div class="proxima">
+      ${proximaTopbar()}
+      <div class="proxima-body">${proximaNav('Home')}${proximaHomeBody()}</div>
+      <div class="countdown-badge" id="countNum">3</div>
+      <div class="ext-bar">
+        <div class="ext-left"></div>
+        <div class="ext-right"><button class="btn-ghost" onclick="goStage(0)">Cancel</button></div>
+      </div>
+    </div>
+  `);
+}
+function runCountdown(){
+  let n = 3;
+  const el = document.getElementById('countNum');
+  const timer = setInterval(()=>{
+    n -= 1;
+    if (!document.getElementById('countNum')) { clearInterval(timer); return; }
+    if (n <= 0){ clearInterval(timer); goStage(2); return; }
+    document.getElementById('countNum').textContent = n;
+  }, 700);
+}
+
+const MAX_STEPS = 3;
+let capturedSteps = 0;
+let recordTimers = [];
+function clearRecordTimers(){
+  recordTimers.forEach(t => clearTimeout(t));
+  recordTimers = [];
+}
+function renderRecording(){
+  capturedSteps = 0;
+  return browserFrame(`
+    <div class="proxima">
+      ${proximaTopbar()}
+      <div class="proxima-body">${proximaNav('')}${proximaUsersBody(true)}</div>
+      <div class="fake-cursor" id="fakeCursor">${ICON_CURSOR}</div>
+      <div class="ext-bar">
+        <div class="ext-left">
+          <button class="collapse-btn">&#9664;</button>
+          <div class="step-dots" id="stepDots"></div>
+          <div class="rec-pill"><span class="rec-dot"></span>Recording</div>
+        </div>
+        <div class="ext-right">
+          <button class="btn-white" onclick="goStage(3)">${ICON_STOP} Stop Capture</button>
+          <button class="btn-dark2" onclick="goStage(0)">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function renderStepDots(){
+  const wrap = document.getElementById('stepDots');
+  if (!wrap) return;
+  let html = '';
+  for (let i=1;i<=capturedSteps;i++){
+    html += `<div class="step-dot">${ICON_PLAY}</div>`;
+  }
+  wrap.innerHTML = html;
+}
+function moveCursorTo(targetEl, cursor, proxima){
+  const t = targetEl.getBoundingClientRect();
+  const p = proxima.getBoundingClientRect();
+  const x = t.left - p.left + t.width/2 - 3;
+  const y = t.top - p.top + t.height/2 - 2;
+  cursor.style.left = x + 'px';
+  cursor.style.top = y + 'px';
+  return { x: x+3, y: y+2 };
+}
+function clickRipple(proxima, x, y){
+  const r = document.createElement('div');
+  r.className = 'click-ripple';
+  r.style.left = x + 'px';
+  r.style.top = y + 'px';
+  proxima.appendChild(r);
+  setTimeout(()=>{ if (r.parentNode) r.remove(); }, 600);
+}
+function captureStep(el){
+  if (capturedSteps >= MAX_STEPS) return;
+  capturedSteps += 1;
+  renderStepDots();
+  if (el){ el.style.boxShadow = '0 0 0 5px var(--purple-soft)'; setTimeout(()=>{ if(el) el.style.boxShadow=''; }, 300); }
+}
+function animateRecording(){
+  const cursor = document.getElementById('fakeCursor');
+  const proxima = cursor ? cursor.closest('.proxima') : null;
+  if (!cursor || !proxima) return;
+  const targets = ['animTargetTab','emailField','animTargetSend'].map(id => document.getElementById(id));
+  let x0 = 40, y0 = 90;
+  cursor.style.left = x0+'px'; cursor.style.top = y0+'px';
+  recordTimers.push(setTimeout(()=> cursor.classList.add('visible'), 150));
+  targets.forEach((el, i) => {
+    if (!el) return;
+    recordTimers.push(setTimeout(()=>{
+      const cur = document.getElementById('fakeCursor');
+      const prox = cur ? cur.closest('.proxima') : null;
+      if (!cur || !prox) return;
+      const pos = moveCursorTo(el, cur, prox);
+      recordTimers.push(setTimeout(()=>{
+        clickRipple(prox, pos.x, pos.y);
+        captureStep(el);
+      }, 680));
+    }, 500 + i*1150));
+  });
+}
+
+function renderRecorded(){
+  const count = capturedSteps || 3;
+  return browserFrame(`
+    <div class="proxima">
+      ${proximaTopbar()}
+      <div class="proxima-body">${proximaNav('')}${proximaUsersBody(true)}</div>
+      <div class="ext-bar">
+        <div class="ext-left">
+          <button class="collapse-btn">&#9664;</button>
+          <div class="step-dots">${Array.from({length:count}).map(()=>`<div class="step-dot">${ICON_PLAY}</div>`).join('')}</div>
+          <div class="success-pill">${ICON_CHECK} Tour Flow Recorded!</div>
+        </div>
+        <div class="ext-right">
+          <button class="btn-white" onclick="capturedSteps=0; goStage(0);">Try again</button>
+          <button class="btn-primary" onclick="goStage(4)">Save and edit in Candu &rarr;</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+/* ---------------- Shared editor chrome ---------------- */
+function editorTop(){
+  return `
+  <div class="editor-top">
+    <div class="left">
+      ${CANDU_MARK}
+      <span class="backchev">&lsaquo;</span>
+      <span class="tourname">Tour: Portfolio Demo Tour ${ICON_CHEVDOWN}</span>
+    </div>
+    <div class="center-icons">
+      <span class="ic active">${ICON_PENCIL}</span>
+      <span class="ic">${ICON_SHARE}</span>
+      <span class="ic">${ICON_CHART}</span>
+      <span class="ic">${ICON_GEAR}</span>
+    </div>
+    <div class="right">
+      <div class="avatar-circle">RD</div>
+      <div class="saved-status">${ICON_CHECK} Saved ${ICON_CHEVDOWN}</div>
+      <button class="btn-share">${ICON_SHARE} Share</button>
+      <button class="btn-publish" onclick="publishTour()">${ICON_LOCK} Publish</button>
+    </div>
+  </div>`;
+}
+function editorRail(){
+  return `
+  <div class="editor-rail">
+    <div class="rail-logo">${CANDU_MARK}</div>
+    <div class="rail-group">
+      <div class="rail-item">${ICON_GRID}<span>Components</span></div>
+      <div class="rail-item">${ICON_LAYERS}<span>Layers</span></div>
+      <div class="rail-item">${ICON_FRAME}<span>Templates</span></div>
+    </div>
+    <div class="rail-spacer"></div>
+    <div class="rail-bottom">
+      <div class="rail-item">${ICON_HISTORY}<span>History</span></div>
+      <div class="rail-item">${ICON_SHORTCUT}<span>Shortcuts</span></div>
+    </div>
+  </div>`;
+}
+function editorRightHead(){
+  return `
+  <div class="editor-right-head">
+    ${ICON_DESKTOP}${ICON_TABLET}${ICON_MOBILE}
+    <span class="close-x">Close</span>
+  </div>
+  <div class="editor-tools">
+    <span class="t active">${ICON_PENCIL}</span>
+    <span class="t">${ICON_LIGHTNING}</span>
+    <span class="t">${ICON_FRAME}</span>
+    <span class="t">${ICON_SPARKLE}</span>
+  </div>
+  <div class="chat-history-label">${ICON_CHEVDOWN} Chat History</div>`;
+}
+function floatingStepnav(active, total){
+  let steps = '';
+  for (let i=1;i<=total;i++){
+    steps += `<div class="fsn-step ${i===active?'active':''}">${ICON_PLAY}</div>`;
+  }
+  return `
+  <div class="floating-stepnav">
+    <span class="fsn-grip">${ICON_GRIP}</span>
+    ${steps}
+    <span class="fsn-add">${ICON_PLUS} Add Step</span>
+    <span class="fsn-expand">${ICON_EXPAND}</span>
+  </div>`;
+}
+function editorStatusBar(){
+  return `
+  <div class="editor-status-bar">
+    <span class="tourstep-tag">Tour Step</span>
+    <span class="undoredo">${ICON_UNDO}${ICON_REDO}</span>
+  </div>`;
+}
+function editorShell({ canvasBody, rightBody, showStatusBar }){
+  return `
+  <div class="browser-frame editor-shell">
+    ${editorTop()}
+    <div class="editor-body">
+      ${editorRail()}
+      <div class="editor-canvas-wrap">
+        <div class="editor-tabbar"><div class="tab"><span class="dot"></span>Everyone</div></div>
+        <div class="editor-canvas">${canvasBody}</div>
+        ${showStatusBar ? editorStatusBar() : ''}
+      </div>
+      <div class="editor-right">${rightBody}</div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- AI processing carousel ---------------- */
+const TIPS = [
+  { title:'Your tour is almost ready to edit', body:"We've captured your flow step-by-step. Next, you'll review AI-generated copy, adjust placement on your snapshots, and publish when ready." },
+  { title:'Design each step on real pages', body:'Every snapshot you recorded becomes a background in the editor. Switch between pages to design each tour step exactly where users will see it.' },
+  { title:'Refine copy, placement, and styling', body:"AI drafted your content, but you're in control. Edit step titles and body copy, reposition tooltips with drag-and-drop, and adjust colors to match your brand." },
+  { title:'Test your tour, then go live', body:'Preview the complete flow from your user’s perspective. When everything looks perfect, publish to your target audience with one click.' },
+];
+let tipIndex = 0;
+let tipTimer;
+function renderProcessing(){
+  tipIndex = 0;
+  setTimeout(()=>{
+    renderTip();
+    clearInterval(tipTimer);
+    tipTimer = setInterval(()=>{
+      tipIndex = (tipIndex+1) % TIPS.length;
+      renderTip();
+    }, 3200);
+  }, 0);
+  recordTimers.push(setTimeout(()=>{ if (state.stage === 4) { clearInterval(tipTimer); goStage(5); } }, 15000));
+  const canvasBody = `
+    <div class="processing-canvas">
+      <div class="tip-illustration"><svg viewBox="0 0 100 70" fill="none"><rect x="30" y="8" width="45" height="30" rx="4" stroke="#5911E1" stroke-width="2"/><circle cx="10" cy="35" r="6" fill="#5911E1" opacity=".2"/><circle cx="10" cy="35" r="3" fill="#5911E1"/><circle cx="50" cy="60" r="6" fill="#5911E1" opacity=".2"/><circle cx="50" cy="60" r="3" fill="#5911E1"/><circle cx="90" cy="20" r="6" fill="#53C6C1" opacity=".3"/><circle cx="90" cy="20" r="3" fill="#53C6C1"/><path d="M18 35H85" stroke="#D8CDF5" stroke-width="2" stroke-dasharray="3 3"/></svg></div>
+      <h3 id="tipTitle"></h3>
+      <p id="tipBody"></p>
+      <div class="tip-dots" id="tipDots"></div>
+      <button class="btn-white tip-next" onclick="clearInterval(tipTimer); goStage(5);">Skip to result &rarr;</button>
+    </div>`;
+  const rightBody = `
+    ${editorRightHead()}
+    <div class="chat-body">
+      <div class="step-block"><b>Generate steps for the Tour from the Capture Session.</b></div>
+      <div>${ICON_CHECK} Understood</div>
+      <div class="chat-thinking"><span class="spinner"></span> Analyzing snapshots&hellip;</div>
+      <div style="padding-left:20px; font-style:italic; color:var(--ink-faint);">Checking your page&hellip;</div>
+      <div class="chat-thinking"><span>${ICON_SPARKLE}</span> Candu AI is thinking.</div>
+    </div>
+    <div class="chat-input-wrap">
+      <div class="chat-input-label">What do you want to do? <span class="beta-tag">Beta</span></div>
+      <div class="chat-textarea">Type message here</div>
+    </div>`;
+  return editorShell({ canvasBody, rightBody, showStatusBar:false });
+}
+function renderTip(){
+  const t = TIPS[tipIndex];
+  const titleEl = document.getElementById('tipTitle');
+  if (!titleEl) { clearInterval(tipTimer); return; }
+  titleEl.textContent = t.title;
+  document.getElementById('tipBody').textContent = t.body;
+  document.getElementById('tipDots').innerHTML = TIPS.map((_,i)=>`<span class="${i===tipIndex?'active':''}"></span>`).join('');
+}
+
+/* ---------------- Editor result ---------------- */
+function renderEditor(){
+  const canvasBody = `
+    ${proximaTopbar()}
+    <div class="proxima-body">${proximaNav('')}${proximaUsersBody(false)}</div>
+    <div class="tour-tooltip" style="top:255px; left:260px;">
+      <span class="tag">Tour Step</span>
+      <p>Enter the teammate's email and click Invite.</p>
+    </div>
+    ${floatingStepnav(2,3)}`;
+  const rightBody = `
+    ${editorRightHead()}
+    <div class="chat-body">
+      <div class="step-block">
+        <b>Step 1:</b>
+        Selector: <code>ul#nav a[href="#users"]</code><br>Status: ${ICON_CHECK} exists (unique match)
+      </div>
+      <div class="step-block">
+        <b>Step 2:</b>
+        Selector: <code>#invite-email</code><br>Status: ${ICON_CHECK} exists (unique match)
+      </div>
+      <div class="step-block">
+        <b>Step 3:</b>
+        Selector: <code>button.send-invitation</code><br>Status: ${ICON_CHECK} exists (unique match)
+      </div>
+      <div class="chat-succeed"><span>${ICON_CHECK} 6 actions succeeded</span><button>Undo</button></div>
+    </div>
+    <div class="chat-input-wrap">
+      <div class="chat-input-label">What do you want to do? <span class="beta-tag">Beta</span></div>
+      <div class="chat-textarea">Type message here</div>
+    </div>`;
+  return editorShell({ canvasBody, rightBody, showStatusBar:true });
+}
+function publishTour(){
+  showToast('Tour published to your target audience.');
+}
+
+/* ---------------- Stage machine ---------------- */
+const STAGES = [
+  { label:'1 · Extension idle', hint:'Click Start Capture to begin recording.', render: renderIdle },
+  { label:'2 · Countdown', hint:'A 3-second countdown gives the user time to prepare.', render: renderCountdown },
+  { label:'3 · Recording', hint:'Watch the capture happen automatically, then Stop Capture.', render: renderRecording },
+  { label:'4 · Recorded', hint:'Review the summary, then save into Candu.', render: renderRecorded },
+  { label:'5 · AI generating', hint:'Educational tips rotate while the AI drafts the tour.', render: renderProcessing },
+  { label:'6 · Editor: ready to publish', hint:'AI drafted the tour; a human reviews and publishes.', render: renderEditor },
+];
+const state = { stage: 0 };
+const select = document.getElementById('stageSelect');
+select.innerHTML = STAGES.map((s,i)=>`<option value="${i}">${s.label}</option>`).join('');
+select.addEventListener('change', ()=> goStage(parseInt(select.value,10)));
+document.getElementById('prevBtn').addEventListener('click', ()=> goStage((state.stage-1+STAGES.length)%STAGES.length));
+document.getElementById('nextBtn').addEventListener('click', ()=> goStage((state.stage+1)%STAGES.length));
+document.getElementById('replayBtn').addEventListener('click', ()=> goStage(state.stage, true));
+
+function goStage(i, forceReplay){
+  clearInterval(tipTimer);
+  clearRecordTimers();
+  if (i === 0 && !forceReplay) { capturedSteps = 0; }
+  state.stage = i;
+  select.value = i;
+  document.getElementById('stageHint').textContent = STAGES[i].hint;
+  viewport.innerHTML = STAGES[i].render();
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) startBtn.addEventListener('click', ()=> goStage(1));
+  renderStepDots();
+  if (i === 2) animateRecording();
+}
+goStage(0);
+</script>
+</body>
+</html>
